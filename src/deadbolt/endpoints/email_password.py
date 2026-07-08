@@ -23,7 +23,8 @@ _RESET_TTL_SECONDS = 60 * 60
 # unknown email costs the same as a known one, closing the timing/enumeration
 # side-channel. The plaintext behind it is irrelevant; verification always fails.
 _DECOY_HASH = (
-    "$argon2id$v=19$m=65536,t=3,p=4$zDXizTs6UjYCMUf6zTqxcg$nt/WlMDPygbKT1Ojq4b1qjok02RRLkXG1XmGdNxdYm0"
+    "$argon2id$v=19$m=65536,t=3,p=4$zDXizTs6UjYCMUf6zTqxcg$"
+    "nt/WlMDPygbKT1Ojq4b1qjok02RRLkXG1XmGdNxdYm0"
 )
 
 

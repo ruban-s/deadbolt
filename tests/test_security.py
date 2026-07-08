@@ -87,7 +87,9 @@ async def test_configured_trusted_origin_allowed() -> None:
 
 async def test_wildcard_trusted_origin() -> None:
     auth = _basic_auth(trusted_origins=["chrome-extension://*"])
-    resp = await auth.handle(_signup(origin="chrome-extension://abc123", base_url="https://app.com"))
+    resp = await auth.handle(
+        _signup(origin="chrome-extension://abc123", base_url="https://app.com")
+    )
     assert resp.status == 200
 
 
