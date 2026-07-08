@@ -35,5 +35,8 @@ All notable changes to this project are documented here. The format follows
 - `Auth.cleanup_expired()` to purge expired sessions and verifications (run periodically).
 - Redacting per-request audit logging on the `deadbolt.audit` logger.
 - Portable date-range `Where` filtering across the memory and SQLAlchemy adapters.
+- Social OAuth plugin (`deadbolt.plugins.oauth.social`) with Google and GitHub providers:
+  authorization-code flow with PKCE, hashed/single-use state, account linking, and optional
+  post-login redirect. Endpoints double as callables and set response headers.
 - SQLAlchemy 2.0 Core async adapter over Postgres/MySQL/SQLite, with dates stored as
   ISO-8601 for identical timezone-aware round-trips across dialects.
