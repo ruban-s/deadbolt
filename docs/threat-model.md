@@ -35,8 +35,9 @@ secret).
 
 ### Repudiation
 
-- Session rows carry `ip_address`, `user_agent`, and timestamps. A structured, redacting audit log
-  is planned (not yet implemented) — the library currently performs no logging of its own.
+- Session rows carry `ip_address`, `user_agent`, and timestamps. Every request emits a redacting
+  audit line on the `deadbolt.audit` logger (path, method, status, client IP — never secrets), which
+  applications route to their own sinks.
 
 ### Information disclosure
 

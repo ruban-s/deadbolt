@@ -32,5 +32,8 @@ All notable changes to this project are documented here. The format follows
   (`RateLimit`, `RateLimitRule`, `RateLimitStore`).
 - Absolute session lifetime cap beyond sliding refresh; `SessionManager.is_fresh` for
   gating sensitive actions; request body-size limit (`max_body_bytes`).
+- `Auth.cleanup_expired()` to purge expired sessions and verifications (run periodically).
+- Redacting per-request audit logging on the `deadbolt.audit` logger.
+- Portable date-range `Where` filtering across the memory and SQLAlchemy adapters.
 - SQLAlchemy 2.0 Core async adapter over Postgres/MySQL/SQLite, with dates stored as
   ISO-8601 for identical timezone-aware round-trips across dialects.
