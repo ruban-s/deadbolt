@@ -31,6 +31,9 @@ dependencies = [
     "sniffio>=1.3",
 ]
 
+[project.scripts]
+deadbolt = "deadbolt.cli:main"
+
 [project.urls]
 Homepage = "https://github.com/ruban-s/deadbolt"
 Documentation = "https://deadbolt.readthedocs.io"
@@ -104,6 +107,10 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 disallow_any_generics = true
 files = ["src", "tests"]
+
+[[tool.mypy.overrides]]
+module = "deadbolt.cli"
+disallow_untyped_calls = false
 
 [tool.pytest.ini_options]
 minversion = "8.0"
