@@ -22,6 +22,9 @@ All notable changes to this project are documented here. The format follows
 - Passkeys (WebAuthn) plugin (`deadbolt.plugins.passkeys`): registration and authentication
   ceremonies via py_webauthn, challenge storage, per-credential sign-count tracking, and
   list/delete management.
+- Username plugin: set a username and sign in with it (timing-safe), with an availability check.
+- Phone/SMS OTP plugin (`SmsSender` protocol): passwordless phone sign-in and phone linking, with
+  an attempts-limited code table.
 
 - Project scaffold: packaging, dev tooling, CI, and governance.
 - Architecture specification, STRIDE threat model, and initial ADRs.
