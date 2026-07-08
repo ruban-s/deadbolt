@@ -25,8 +25,10 @@ if TYPE_CHECKING:
 
     from ..core.auth import Auth
     from ..endpoints.context import EndpointRequest
+    from ..http import Cookie
 
 _STATE_PREFIX = "oauth"
+_LINK_PREFIX = "oauth-link"
 _STATE_TTL = 600
 
 
@@ -106,16 +108,25 @@ def social(
                 "created_at": now,
             },
         )
-        params = {
-            "client_id": provider.client_id,
-            "redirect_uri": provider.redirect_uri,
-            "response_type": "code",
-            "scope": " ".join(provider.scopes),
-            "state": state,
-            "code_challenge": _pkce_challenge(verifier),
-            "code_challenge_method": "S256",
-        }
-        return EndpointResult(data={"url": f"{provider.authorize_url}?{urlencode(params)}"})
+        return EndpointResult(data={"url": _authorize_url(provider, state, verifier)})
+
+    async def link(auth: Auth, req: EndpointRequest) -> EndpointResult:
+        _, user = await svc.require_session(auth, req)
+        provider = _provider(registry, req.body.get("provider"))
+        state = generate_token()
+        verifier = generate_token()
+        now = utcnow()
+        await auth.adapter.create(
+            model="verification",
+            data={
+                "id": new_id(),
+                "identifier": f"{_LINK_PREFIX}:{provider.id}:{user['id']}:{verifier}",
+                "value": hash_token(state),
+                "expires_at": now + timedelta(seconds=_STATE_TTL),
+                "created_at": now,
+            },
+        )
+        return EndpointResult(data={"url": _authorize_url(provider, state, verifier)})
 
     async def callback(auth: Auth, req: EndpointRequest) -> EndpointResult:
         query = req.query
@@ -127,32 +138,32 @@ def social(
         record = await auth.adapter.find_one(
             model="verification", where=[Where("value", hash_token(state))]
         )
-        if record is None or not record["identifier"].startswith(f"{_STATE_PREFIX}:"):
+        identifier = str(record["identifier"]) if record else ""
+        if record is None or not identifier.startswith((f"{_STATE_PREFIX}:", f"{_LINK_PREFIX}:")):
             raise APIError(400, "invalid_state", "The OAuth state is invalid or expired.")
         if record["expires_at"] <= utcnow():
             raise APIError(400, "invalid_state", "The OAuth state is invalid or expired.")
         await auth.adapter.delete(model="verification", where=[Where("value", hash_token(state))])
 
-        _, provider_id, verifier = record["identifier"].split(":", 2)
+        if identifier.startswith(f"{_LINK_PREFIX}:"):
+            _, provider_id, user_id, verifier = identifier.split(":", 3)
+            provider = registry[provider_id]
+            profile = await _fetch_profile(make_client, provider, code, verifier)
+            await _link_account(auth, provider, profile, user_id)
+            return _finish(provider, cookie=None, data={"success": True})
+
+        _, provider_id, verifier = identifier.split(":", 2)
         provider = registry[provider_id]
         profile = await _fetch_profile(make_client, provider, code, verifier)
         user = await _link_user(auth, provider, profile)
-
         token, _ = await auth.sessions.create(user["id"], ip=req.client_ip)
-        cookie = auth.sessions.build_cookie(token)
-        if provider.success_redirect is not None:
-            return EndpointResult(
-                data={"redirect": provider.success_redirect},
-                status=302,
-                cookies=[cookie],
-                headers={"Location": provider.success_redirect},
-            )
-        return EndpointResult(data={"user": svc.public_user(user)}, cookies=[cookie])
+        return _finish(provider, auth.sessions.build_cookie(token), {"user": svc.public_user(user)})
 
     return Plugin(
         id="social-oauth",
         endpoints=(
             Endpoint("POST", "/sign-in/social", start, "sign_in_social"),
+            Endpoint("POST", "/link-social", link, "link_social"),
             Endpoint("GET", "/oauth/callback", callback, "oauth_callback"),
         ),
     )
@@ -187,6 +198,45 @@ async def _fetch_profile(
         if userinfo_response.status_code != httpx.codes.OK:
             raise APIError(502, "oauth_userinfo_error", "Failed to fetch the user profile.")
     return provider.map_user(userinfo_response.json())
+
+
+def _authorize_url(provider: OAuthProvider, state: str, verifier: str) -> str:
+    params = {
+        "client_id": provider.client_id,
+        "redirect_uri": provider.redirect_uri,
+        "response_type": "code",
+        "scope": " ".join(provider.scopes),
+        "state": state,
+        "code_challenge": _pkce_challenge(verifier),
+        "code_challenge_method": "S256",
+    }
+    return f"{provider.authorize_url}?{urlencode(params)}"
+
+
+def _finish(provider: OAuthProvider, cookie: Cookie | None, data: dict[str, Any]) -> EndpointResult:
+    cookies = [cookie] if cookie is not None else []
+    if provider.success_redirect is not None:
+        return EndpointResult(
+            data={"redirect": provider.success_redirect},
+            status=302,
+            cookies=cookies,
+            headers={"Location": provider.success_redirect},
+        )
+    return EndpointResult(data=data, cookies=cookies)
+
+
+async def _link_account(
+    auth: Auth, provider: OAuthProvider, profile: ProviderUser, user_id: str
+) -> None:
+    existing = await svc.find_provider_account(
+        auth.adapter, provider_id=provider.id, account_id=profile.account_id
+    )
+    if existing is not None and existing["user_id"] != user_id:
+        raise APIError(409, "account_linked", "That account is linked to another user.")
+    if existing is None:
+        await svc.create_provider_account(
+            auth.adapter, user_id=user_id, provider_id=provider.id, account_id=profile.account_id
+        )
 
 
 async def _link_user(auth: Auth, provider: OAuthProvider, profile: ProviderUser) -> dict[str, Any]:
