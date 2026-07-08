@@ -6,6 +6,7 @@ import json
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
+from .._csrf import is_trusted_request
 from ..endpoints import EndpointRequest
 from ..errors import APIError
 from ..http import AuthResponse
@@ -35,6 +36,9 @@ class Router:
         endpoint = self._registry.by_route.get((request.method, request.path))
         if endpoint is None:
             return self._error(APIError(404, "not_found", "No such endpoint."))
+
+        if not is_trusted_request(request, self._auth.trusted_origins):
+            return self._error(APIError(403, "untrusted_origin", "Request origin is not trusted."))
 
         try:
             body = self._parse_body(request)
