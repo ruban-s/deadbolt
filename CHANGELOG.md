@@ -40,5 +40,9 @@ All notable changes to this project are documented here. The format follows
   post-login redirect. Endpoints double as callables and set response headers.
 - Hook system (`Hook`, `Hooks`, `HookContext`): path-scoped before/after request hooks that can
   block requests or rewrite results, registered on `Auth` or contributed by plugins.
+- AEAD field encryption (`Encryptor`, AES-256-GCM over an HKDF-derived subkey).
+- TOTP two-factor plugin (`deadbolt.plugins.totp.totp`): encrypted secret at rest, enroll/enable/
+  disable, hashed single-use backup codes, and a sign-in after-hook that turns login into a 2FA
+  challenge for enrolled users.
 - SQLAlchemy 2.0 Core async adapter over Postgres/MySQL/SQLite, with dates stored as
   ISO-8601 for identical timezone-aware round-trips across dialects.
