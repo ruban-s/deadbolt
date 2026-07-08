@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
@@ -15,6 +16,8 @@ if TYPE_CHECKING:
     from ..endpoints import Registry
     from ..http import AuthRequest
     from .auth import Auth
+
+_AUDIT = logging.getLogger("deadbolt.audit")
 
 
 def _json_default(value: object) -> str:
@@ -33,6 +36,17 @@ class Router:
         self._registry = registry
 
     async def handle(self, request: AuthRequest) -> AuthResponse:
+        response = await self._dispatch(request)
+        _AUDIT.info(
+            "event=%s method=%s status=%d ip=%s",
+            request.path,
+            request.method,
+            response.status,
+            request.client_ip or "-",
+        )
+        return response
+
+    async def _dispatch(self, request: AuthRequest) -> AuthResponse:
         endpoint = self._registry.by_route.get((request.method, request.path))
         if endpoint is None:
             return self._error(APIError(404, "not_found", "No such endpoint."))
