@@ -20,6 +20,7 @@ from .router import Router
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+    from ..hooks import Hook, Hooks
     from ..http import AuthRequest, AuthResponse
     from ..plugins import Plugin
     from ..protocols import AsyncDatabaseAdapter, EmailSender, Hasher
@@ -52,6 +53,7 @@ class Auth:
         rate_limit: RateLimit | None = None,
         rate_limit_store: RateLimitStore | None = None,
         max_body_bytes: int = 1_048_576,
+        hooks: Hooks | None = None,
     ) -> None:
         if not secret or len(secret) < _MIN_SECRET_BYTES:
             raise ConfigError("Auth requires a secret of at least 32 bytes.")
@@ -74,6 +76,14 @@ class Auth:
         )
         self.plugins = tuple(plugins)
         self.schema = tuple(CORE_TABLES) + tuple(t for p in self.plugins for t in p.schema)
+        self.before_hooks: list[Hook] = [
+            *(hooks.before if hooks else ()),
+            *(h for p in self.plugins for h in p.before),
+        ]
+        self.after_hooks: list[Hook] = [
+            *(hooks.after if hooks else ()),
+            *(h for p in self.plugins for h in p.after),
+        ]
         plugin_endpoints = tuple(e for p in self.plugins for e in p.endpoints)
         registry = Registry(ENDPOINTS + plugin_endpoints)
         self.rate_limiter = RateLimiter(rate_limit or RateLimit(), rate_limit_store)

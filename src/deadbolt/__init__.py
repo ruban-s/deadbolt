@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING, Any
 from . import errors
 from .core import Auth, CookieConfig, EmailPassword, SessionConfig
 from .db import FieldSpec, MemoryAdapter, SortBy, TableSpec, Where
+from .hooks import Hook, HookContext, Hooks
 from .http import AuthRequest, AuthResponse, Cookie
 from .plugins import Plugin
 from .protocols import (
@@ -47,6 +48,9 @@ __all__ = [
     "EmailSender",
     "FieldSpec",
     "Hasher",
+    "Hook",
+    "HookContext",
+    "Hooks",
     "MemoryAdapter",
     "Plugin",
     "RateLimit",

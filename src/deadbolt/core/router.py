@@ -10,12 +10,17 @@ from typing import TYPE_CHECKING, Any
 from .._csrf import is_trusted_request
 from ..endpoints import EndpointRequest
 from ..errors import APIError
+from ..hooks import HookContext
 from ..http import AuthResponse, MultiDict
 
 if TYPE_CHECKING:
-    from ..endpoints import Registry
+    from collections.abc import Awaitable, Callable
+
+    from ..endpoints import EndpointResult, Registry
     from ..http import AuthRequest
     from .auth import Auth
+
+    Handler = Callable[[Auth, EndpointRequest], Awaitable[EndpointResult]]
 
 _AUDIT = logging.getLogger("deadbolt.audit")
 
@@ -67,7 +72,7 @@ class Router:
             client_ip=request.client_ip,
         )
         try:
-            result = await endpoint.handler(self._auth, req)
+            result = await self._run(endpoint.handler, req, request.path)
         except APIError as error:
             return self._error(error)
 
@@ -75,6 +80,21 @@ class Router:
         return AuthResponse(
             status=result.status, headers=headers, body=_encode(result.data), cookies=result.cookies
         )
+
+    async def _run(
+        self, handler: Handler, req: EndpointRequest, path: str
+    ) -> EndpointResult:
+        for hook in self._auth.before_hooks:
+            if hook.matches(path):
+                await hook.run(HookContext(self._auth, req, path))
+        result = await handler(self._auth, req)
+        for hook in self._auth.after_hooks:
+            if hook.matches(path):
+                context = HookContext(self._auth, req, path, result)
+                await hook.run(context)
+                if context.result is not None:
+                    result = context.result
+        return result
 
     async def _preflight(self, request: AuthRequest) -> APIError | None:
         if not is_trusted_request(request, self._auth.trusted_origins):
