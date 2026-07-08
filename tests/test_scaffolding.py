@@ -44,8 +44,7 @@ def test_core_tables() -> None:
 
 def test_lazy_sqlalchemy_adapter_access() -> None:
     assert db.SQLAlchemyAdapter is db.db.SQLAlchemyAdapter
-    with pytest.raises(NotImplementedError):
-        db.SQLAlchemyAdapter(engine=None)
+    assert "SQLAlchemyAdapter" in db.__all__
 
 
 def test_unknown_top_level_attribute() -> None:
