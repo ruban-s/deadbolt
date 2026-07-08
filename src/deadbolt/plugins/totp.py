@@ -70,6 +70,17 @@ def totp(*, issuer: str = "deadbolt", backup_code_count: int = 10) -> Plugin:
         await auth.adapter.delete(model="two_factor", where=[Where("user_id", user["id"])])
         return EndpointResult(data={"success": True})
 
+    async def regenerate_backup_codes(auth: Auth, req: EndpointRequest) -> EndpointResult:
+        user = await _session_user(auth, req)
+        row = await _load(auth, user["id"])
+        if row is None or not row["enabled"]:
+            raise APIError(400, "not_enrolled", "TOTP is not enabled.")
+        if not _check_totp(auth, row, _require(req.body, "code")):
+            raise APIError(400, "invalid_code", "The verification code is invalid.")
+        codes = [_backup_code() for _ in range(backup_code_count)]
+        await _update(auth, user["id"], backup_codes=[hash_token(c) for c in codes])
+        return EndpointResult(data={"backup_codes": codes})
+
     async def challenge(auth: Auth, req: EndpointRequest) -> EndpointResult:
         token = _require(req.body, "challenge")
         record = await auth.adapter.find_one(
@@ -103,6 +114,9 @@ def totp(*, issuer: str = "deadbolt", backup_code_count: int = 10) -> Plugin:
             Endpoint("POST", "/2fa/totp/enable", enable, "totp_enable"),
             Endpoint("POST", "/2fa/totp/disable", disable, "totp_disable"),
             Endpoint("POST", "/2fa/totp/challenge", challenge, "totp_challenge"),
+            Endpoint(
+                "POST", "/2fa/totp/backup-codes", regenerate_backup_codes, "totp_backup_codes"
+            ),
         ),
         after=(Hook(_challenge_after_sign_in, path="/sign-in/email"),),
     )
