@@ -4,8 +4,8 @@ A framework-agnostic, batteries-included authentication library for Python. Own 
 
 [![PyPI](https://img.shields.io/pypi/v/deadbolt.svg)](https://pypi.org/project/deadbolt/)
 [![Python](https://img.shields.io/pypi/pyversions/deadbolt.svg)](https://pypi.org/project/deadbolt/)
-[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Typed](https://img.shields.io/badge/typed-mypy--strict-blue.svg)](pyproject.toml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](https://opensource.org/license/mit)
+![Typed](https://img.shields.io/badge/typed-mypy--strict-blue.svg)
 
 `deadbolt` is what [Better Auth](https://better-auth.com) is for the TypeScript world, rebuilt
 idiomatically for Python: a self-hosted auth engine with a database-adapter abstraction, signed
@@ -103,9 +103,10 @@ uv run ruff check . && uv run ruff format --check . && uv run mypy
 
 ## Security
 
-Please report vulnerabilities via GitHub private advisories — see [`SECURITY.md`](SECURITY.md).
-Never open a public issue for a security bug. Architecture and threat model live in [`docs/`](docs).
+Please report vulnerabilities via GitHub private advisories — see `SECURITY.md` in the repository.
+Never open a public issue for a security bug. The architecture spec and STRIDE threat model live in
+the repository's `docs/` directory.
 
 ## License
 
-[MIT](LICENSE) © the deadbolt contributors.
+MIT © the deadbolt contributors.
