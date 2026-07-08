@@ -42,4 +42,6 @@ least a minor release.
 
 ## Architecture
 
-Read [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) first. Significant design decisions get an ADR.
+Read the [Architecture](https://deadbolt.readthedocs.io/en/latest/concepts/architecture/) docs first.
+The deep design notes, STRIDE threat model, and ADRs live in the workspace `design/` directory.
+Significant design decisions get an ADR.
