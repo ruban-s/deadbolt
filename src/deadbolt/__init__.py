@@ -19,6 +19,7 @@ from . import errors
 from .core import Auth, CookieConfig, EmailPassword, SessionConfig
 from .db import FieldSpec, MemoryAdapter, SortBy, TableSpec, Where
 from .http import AuthRequest, AuthResponse, Cookie
+from .plugins import Plugin
 from .protocols import (
     AsyncDatabaseAdapter,
     EmailSender,
@@ -47,6 +48,7 @@ __all__ = [
     "FieldSpec",
     "Hasher",
     "MemoryAdapter",
+    "Plugin",
     "RateLimiter",
     "SQLAlchemyAdapter",
     "SessionConfig",

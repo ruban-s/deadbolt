@@ -6,8 +6,9 @@ from typing import TYPE_CHECKING
 
 from .._sync import SyncBridge
 from ..crypto import Argon2Hasher, CookieSigner
-from ..endpoints import Registry
+from ..endpoints import ENDPOINTS, Registry
 from ..errors import ConfigError
+from ..models import CORE_TABLES
 from ..session import SessionManager
 from .api import Api
 from .config import CookieConfig, EmailPassword, SessionConfig
@@ -17,6 +18,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from ..http import AuthRequest, AuthResponse
+    from ..plugins import Plugin
     from ..protocols import AsyncDatabaseAdapter, EmailSender, Hasher
 
 _MIN_SECRET_BYTES = 32
@@ -42,6 +44,7 @@ class Auth:
         trusted_origins: Sequence[str] = (),
         hasher: Hasher | None = None,
         email_sender: EmailSender | None = None,
+        plugins: Sequence[Plugin] = (),
     ) -> None:
         if not secret or len(secret) < _MIN_SECRET_BYTES:
             raise ConfigError("Auth requires a secret of at least 32 bytes.")
@@ -61,8 +64,12 @@ class Auth:
             config=self.session,
             cookie=self.cookie,
         )
-        self._router = Router(self, Registry())
-        self._api = Api(self, Registry())
+        self.plugins = tuple(plugins)
+        self.schema = tuple(CORE_TABLES) + tuple(t for p in self.plugins for t in p.schema)
+        plugin_endpoints = tuple(e for p in self.plugins for e in p.endpoints)
+        registry = Registry(ENDPOINTS + plugin_endpoints)
+        self._router = Router(self, registry)
+        self._api = Api(self, registry)
         self._bridge = SyncBridge()
 
     async def handle(self, request: AuthRequest) -> AuthResponse:
