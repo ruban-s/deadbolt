@@ -87,6 +87,9 @@ async def sign_in_email(auth: Auth, req: EndpointRequest) -> EndpointResult:
     if not await auth.hasher.verify(account["password"], password):
         raise _INVALID_CREDENTIALS
 
+    if auth.email_and_password.require_email_verification and not user["email_verified"]:
+        raise APIError(403, "email_not_verified", "Please verify your email before signing in.")
+
     if auth.hasher.needs_rehash(account["password"]):
         await svc.set_account_password(
             auth.adapter, account_id=account["id"], password_hash=await auth.hasher.hash(password)
