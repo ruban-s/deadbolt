@@ -46,3 +46,6 @@ docs/_build/
 sbom*.json
 *.sig
 *.sigstore
+
+# local publish token (never commit)
+.testpypi-token
