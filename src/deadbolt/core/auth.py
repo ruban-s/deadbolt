@@ -5,7 +5,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from .._sync import SyncBridge
+from .._util import utcnow
 from ..crypto import Argon2Hasher, CookieSigner
+from ..db.types import Where
 from ..endpoints import ENDPOINTS, Registry
 from ..errors import ConfigError
 from ..models import CORE_TABLES
@@ -90,6 +92,17 @@ class Auth:
     def close(self) -> None:
         """Shut down the background loop backing the sync bridge, if started."""
         self._bridge.close()
+
+    async def cleanup_expired(self) -> dict[str, int]:
+        """Delete expired sessions and verifications; run periodically in production."""
+        now = utcnow()
+        sessions = await self.adapter.delete_many(
+            model="session", where=[Where("expires_at", now, "lte")]
+        )
+        verifications = await self.adapter.delete_many(
+            model="verification", where=[Where("expires_at", now, "lte")]
+        )
+        return {"sessions": sessions, "verifications": verifications}
 
     @property
     def api(self) -> Api:
