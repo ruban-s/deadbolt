@@ -23,3 +23,4 @@ class EndpointResult:
     data: Any = None
     status: int = 200
     cookies: list[Cookie] = field(default_factory=list)
+    headers: dict[str, str] = field(default_factory=dict)

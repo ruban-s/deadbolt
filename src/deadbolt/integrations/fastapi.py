@@ -47,6 +47,8 @@ def _to_response(result: AuthResponse) -> Response:
     response = Response(
         content=result.body, status_code=result.status, media_type=result.media_type
     )
+    for name, value in result.headers.items():
+        response.headers[name] = value
     for cookie in result.cookies:
         response.set_cookie(
             cookie.name,

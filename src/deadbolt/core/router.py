@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any
 from .._csrf import is_trusted_request
 from ..endpoints import EndpointRequest
 from ..errors import APIError
-from ..http import AuthResponse
+from ..http import AuthResponse, MultiDict
 
 if TYPE_CHECKING:
     from ..endpoints import Registry
@@ -71,7 +71,10 @@ class Router:
         except APIError as error:
             return self._error(error)
 
-        return AuthResponse(status=result.status, body=_encode(result.data), cookies=result.cookies)
+        headers = MultiDict(list(result.headers.items()))
+        return AuthResponse(
+            status=result.status, headers=headers, body=_encode(result.data), cookies=result.cookies
+        )
 
     async def _preflight(self, request: AuthRequest) -> APIError | None:
         if not is_trusted_request(request, self._auth.trusted_origins):

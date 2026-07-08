@@ -47,6 +47,8 @@ def _to_auth_request(path: str) -> AuthRequest:
 
 def _to_response(result: AuthResponse) -> Response:
     response = Response(response=result.body, status=result.status, mimetype=result.media_type)
+    for name, value in result.headers.items():
+        response.headers[name] = value
     for cookie in result.cookies:
         response.set_cookie(
             cookie.name,
