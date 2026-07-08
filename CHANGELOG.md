@@ -8,6 +8,13 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- Email verification (`send-verification-email`, `verify-email`) with a `require_email_verification`
+  sign-in gate; `change-email` (immediate or verified); `update-user`; `delete-user`.
+- Session management endpoints: `list-sessions`, `revoke-session`, `revoke-sessions`,
+  `revoke-other-sessions`.
+- Account linking: `list-accounts`, `unlink-account`, and OAuth `link-social` (link a provider to
+  the signed-in user); TOTP backup-code regeneration (`/2fa/totp/backup-codes`).
+
 - Project scaffold: packaging, dev tooling, CI, and governance.
 - Architecture specification, STRIDE threat model, and initial ADRs.
 - Package skeleton with the alias-first public API, the `AuthRequest`/`AuthResponse`
