@@ -58,14 +58,6 @@ def test_unknown_db_attribute() -> None:
         db.db.DoesNotExist  # noqa: B018
 
 
-def test_fastapi_mount_stub() -> None:
-    from deadbolt.integrations.fastapi import mount  # noqa: PLC0415
-
-    auth = db.Auth(adapter=db.MemoryAdapter(), secret="x" * 32)
-    with pytest.raises(NotImplementedError):
-        mount(object(), auth)
-
-
 def test_mount_app_stubs() -> None:
     auth = db.Auth(adapter=db.MemoryAdapter(), secret="x" * 32)
     with pytest.raises(NotImplementedError):
