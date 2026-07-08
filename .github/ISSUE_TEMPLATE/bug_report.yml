@@ -1,0 +1,32 @@
+name: Bug report
+description: Report a defect in deadbolt (not a security vulnerability)
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For security vulnerabilities do **not** file an issue — see SECURITY.md.
+  - type: input
+    id: version
+    attributes:
+      label: deadbolt version
+    validations:
+      required: true
+  - type: input
+    id: python
+    attributes:
+      label: Python version
+    validations:
+      required: true
+  - type: input
+    id: framework
+    attributes:
+      label: Web framework and adapter
+      description: e.g. FastAPI + SQLAlchemyAdapter (Postgres)
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you expected vs. what occurred, with a minimal reproduction.
+    validations:
+      required: true

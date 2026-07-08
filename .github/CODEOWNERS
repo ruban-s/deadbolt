@@ -1,0 +1,6 @@
+* @ruban-s
+
+/src/deadbolt/crypto/ @ruban-s
+/src/deadbolt/session/ @ruban-s
+/docs/adr/ @ruban-s
+/SECURITY.md @ruban-s
