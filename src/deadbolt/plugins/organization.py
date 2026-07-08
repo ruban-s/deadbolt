@@ -206,9 +206,7 @@ def organization(*, access: AccessControl | None = None) -> Plugin:
                 _remove_team_member,
                 "org_remove_team_member",
             ),
-            endpoint(
-                "GET", "/organization/list-team-members", _team_members, "org_team_members"
-            ),
+            endpoint("GET", "/organization/list-team-members", _team_members, "org_team_members"),
         ),
     )
 
@@ -260,9 +258,7 @@ async def _delete(auth: Auth, req: EndpointRequest, *, ac: AccessControl) -> End
 
 async def _list(auth: Auth, req: EndpointRequest, *, ac: AccessControl) -> EndpointResult:
     user = await _session_user(auth, req)
-    memberships = await auth.adapter.find_many(
-        model="member", where=[Where("user_id", user["id"])]
-    )
+    memberships = await auth.adapter.find_many(model="member", where=[Where("user_id", user["id"])])
     organizations = []
     for membership in memberships:
         org = await _organization(auth, membership["organization_id"])
@@ -620,9 +616,7 @@ async def _pending_invitations(auth: Auth, org_id: str) -> list[Row]:
 
 
 async def _pending_invitation(auth: Auth, invitation_id: str) -> Row:
-    invitation = await auth.adapter.find_one(
-        model="invitation", where=[Where("id", invitation_id)]
-    )
+    invitation = await auth.adapter.find_one(model="invitation", where=[Where("id", invitation_id)])
     if (
         invitation is None
         or invitation["status"] != "pending"
