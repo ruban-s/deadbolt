@@ -97,6 +97,60 @@ async def test_missing_origin_allowed() -> None:
     assert resp.status == 200
 
 
+def _signin(ip: str | None) -> db.AuthRequest:
+    return db.AuthRequest(
+        method="POST",
+        path="/sign-in/email",
+        body=json.dumps({"email": "a@b.com", "password": "hunter2pw"}).encode(),
+        client_ip=ip,
+    )
+
+
+def _limited_auth(ip_rules: db.RateLimit) -> db.Auth:
+    return db.Auth(
+        adapter=db.MemoryAdapter(),
+        secret="x" * 32,
+        email_and_password=db.EmailPassword(enabled=True),
+        hasher=fast_hasher(),
+        rate_limit=ip_rules,
+    )
+
+
+async def test_rate_limit_blocks_after_max() -> None:
+    rule = db.RateLimitRule("/sign-in/email", max=2, window=60)
+    auth = _limited_auth(db.RateLimit(rules=(rule,)))
+    assert (await auth.handle(_signin("1.2.3.4"))).status == 401
+    assert (await auth.handle(_signin("1.2.3.4"))).status == 401
+    blocked = await auth.handle(_signin("1.2.3.4"))
+    assert blocked.status == 429
+    assert json.loads(blocked.body)["error"]["code"] == "rate_limited"
+
+
+async def test_rate_limit_is_per_client() -> None:
+    rule = db.RateLimitRule("/sign-in/email", max=1, window=60)
+    auth = _limited_auth(db.RateLimit(rules=(rule,)))
+    assert (await auth.handle(_signin("1.1.1.1"))).status == 401
+    assert (await auth.handle(_signin("1.1.1.1"))).status == 429
+    assert (await auth.handle(_signin("2.2.2.2"))).status == 401
+
+
+async def test_rate_limit_can_be_disabled() -> None:
+    auth = _limited_auth(db.RateLimit(enabled=False))
+    for _ in range(5):
+        assert (await auth.handle(_signin("1.2.3.4"))).status == 401
+
+
+async def test_rate_limit_window_resets() -> None:
+    from deadbolt.ratelimit import MemoryRateLimitStore  # noqa: PLC0415
+
+    clock = {"t": 0.0}
+    store = MemoryRateLimitStore(now=lambda: clock["t"])
+    assert await store.increment("k", window=60) == 1
+    assert await store.increment("k", window=60) == 2
+    clock["t"] = 61.0
+    assert await store.increment("k", window=60) == 1
+
+
 async def test_sign_in_hashes_even_for_unknown_user() -> None:
     hasher = CountingHasher()
     auth = db.Auth(
