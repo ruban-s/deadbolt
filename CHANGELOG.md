@@ -50,6 +50,9 @@ All notable changes to this project are documented here. The format follows
   control (roles map to `resource -> actions` permissions, checked via `has-permission`), full
   organization lifecycle (create/update/delete), member management (list/remove/update-role/leave
   with a role hierarchy guard), invitation lifecycle (invite/accept/reject/cancel/list), an active
-  organization (`set-active`/`get-active`), and `get-full`. Teams are a planned follow-up.
+  organization (`set-active`/`get-active`), and `get-full`.
+- Organizations: **configurable custom roles** via `access_control(roles=..., hierarchy=...)`
+  (Better Auth's access-control model) and **teams** (create/list/update/remove teams and team
+  members), bringing the plugin close to Better Auth's organization feature set.
 - SQLAlchemy 2.0 Core async adapter over Postgres/MySQL/SQLite, with dates stored as
   ISO-8601 for identical timezone-aware round-trips across dialects.
