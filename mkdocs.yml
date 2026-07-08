@@ -76,6 +76,12 @@ plugins:
 extra_css:
   - stylesheets/extra.css
 
+extra_javascript:
+  - javascripts/announce.js
+
+hooks:
+  - mkdocs_hooks.py
+
 extra:
   social:
     - icon: fontawesome/brands/github

@@ -29,54 +29,147 @@
   --md-code-bg-color: #141726;
 }
 
-/* ---- Premium dark header + tabs in BOTH schemes ---------------------- */
-.md-header,
-.md-tabs {
-  background: linear-gradient(100deg, var(--db-ink) 0%, var(--db-ink-2) 55%, var(--db-ink-3) 100%);
-  color: #eef0ff;
-}
+/* ---- Header + tabs: scheme-aware ------------------------------------ */
 .md-header {
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06), 0 4px 24px rgba(9, 11, 22, 0.28);
-}
-.md-header__title,
-.md-tabs__link {
-  color: #eef0ff;
-}
-.md-tabs__link--active,
-.md-tabs__link:hover {
-  color: #fff;
-  opacity: 1;
-}
-.md-tabs__item--active {
-  border-bottom: 2px solid var(--db-brand-light);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04), 0 4px 24px rgba(9, 11, 22, 0.12);
 }
 .md-header .md-logo img {
   height: 1.7rem;
   width: 1.7rem;
 }
-/* Search pill */
 .md-search__form {
   border-radius: 999px;
+}
+.md-tabs__item--active {
+  border-bottom: 2px solid var(--db-brand);
+}
+
+/* Light mode — bright header, ink text, brand accents */
+[data-md-color-scheme="default"] .md-header,
+[data-md-color-scheme="default"] .md-tabs {
+  background: linear-gradient(100deg, #ffffff 0%, #f5f4ff 55%, #ece8ff 100%);
+  color: var(--db-ink);
+}
+[data-md-color-scheme="default"] .md-header__title,
+[data-md-color-scheme="default"] .md-tabs__link {
+  color: var(--db-ink);
+}
+[data-md-color-scheme="default"] .md-tabs__link--active,
+[data-md-color-scheme="default"] .md-tabs__link:hover {
+  color: var(--db-brand-dark);
+  opacity: 1;
+}
+[data-md-color-scheme="default"] .md-search__form {
+  background: rgba(12, 13, 22, 0.06);
+}
+[data-md-color-scheme="default"] .md-search__form:hover {
+  background: rgba(12, 13, 22, 0.1);
+}
+[data-md-color-scheme="default"] .md-search__input,
+[data-md-color-scheme="default"] .md-search__input::placeholder {
+  color: var(--db-ink);
+}
+
+/* Dark mode — deep gradient header, light text */
+[data-md-color-scheme="slate"] .md-header,
+[data-md-color-scheme="slate"] .md-tabs {
+  background: linear-gradient(100deg, var(--db-ink) 0%, var(--db-ink-2) 55%, var(--db-ink-3) 100%);
+  color: #eef0ff;
+}
+[data-md-color-scheme="slate"] .md-header__title,
+[data-md-color-scheme="slate"] .md-tabs__link {
+  color: #eef0ff;
+}
+[data-md-color-scheme="slate"] .md-tabs__link--active,
+[data-md-color-scheme="slate"] .md-tabs__link:hover {
+  color: #fff;
+  opacity: 1;
+}
+[data-md-color-scheme="slate"] .md-tabs__item--active {
+  border-bottom-color: var(--db-brand-light);
+}
+[data-md-color-scheme="slate"] .md-search__form {
   background: rgba(255, 255, 255, 0.1);
 }
-.md-search__form:hover {
+[data-md-color-scheme="slate"] .md-search__form:hover {
   background: rgba(255, 255, 255, 0.16);
 }
 
-/* ---- Announcement bar ----------------------------------------------- */
+/* ---- Announcement bar: scheme-aware --------------------------------- */
 .md-banner {
-  background: var(--db-ink);
-  color: #d9dcff;
   font-size: 0.72rem;
 }
 .md-banner a {
-  color: var(--db-brand-light);
   font-weight: 600;
 }
 .md-banner code {
-  background: rgba(255, 255, 255, 0.08);
   border-radius: 4px;
   padding: 0.1em 0.4em;
+}
+.db-announce {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+}
+.db-announce .twemoji svg {
+  height: 0.95em;
+  width: 0.95em;
+  vertical-align: -0.15em;
+}
+.db-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.05em 0.2em;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.db-copy:hover {
+  background: rgba(127, 127, 160, 0.16);
+}
+.db-copy__icon svg,
+.db-copy__check svg {
+  height: 0.85em;
+  width: 0.85em;
+  opacity: 0.75;
+}
+.db-copy .db-copy__check {
+  display: none;
+  color: #22c55e;
+}
+.db-copy .db-copy__check svg {
+  opacity: 1;
+}
+.db-copy--done .db-copy__icon {
+  display: none;
+}
+.db-copy--done .db-copy__check {
+  display: inline-flex;
+}
+[data-md-color-scheme="default"] .md-banner {
+  background: #efedfe;
+  color: #3a3170;
+}
+[data-md-color-scheme="default"] .md-banner a {
+  color: var(--db-brand-dark);
+}
+[data-md-color-scheme="default"] .md-banner code {
+  background: rgba(12, 13, 22, 0.06);
+}
+[data-md-color-scheme="slate"] .md-banner {
+  background: var(--db-ink);
+  color: #d9dcff;
+}
+[data-md-color-scheme="slate"] .md-banner a {
+  color: var(--db-brand-light);
+}
+[data-md-color-scheme="slate"] .md-banner code {
+  background: rgba(255, 255, 255, 0.08);
 }
 
 /* ---- Buttons --------------------------------------------------------- */

@@ -1,7 +1,14 @@
 {% extends "base.html" %}
 
 {% block announce %}
-  <span class="twemoji">{% include ".icons/material/lock-check.svg" %}</span>
-  deadbolt <strong>0.1.0</strong> is on <a href="https://pypi.org/project/deadbolt/">PyPI</a> —
-  <code>pip install deadbolt</code>
+  <span class="db-announce">
+    <span class="twemoji">{% include ".icons/material/lock-check.svg" %}</span>
+    deadbolt <strong>{{ config.extra.version }}</strong> is on
+    <a href="https://pypi.org/project/deadbolt/">PyPI</a> —
+    <button class="db-copy" data-copy="pip install deadbolt" title="Copy install command">
+      <code>pip install deadbolt</code>
+      <span class="twemoji db-copy__icon">{% include ".icons/material/content-copy.svg" %}</span>
+      <span class="twemoji db-copy__check">{% include ".icons/material/check.svg" %}</span>
+    </button>
+  </span>
 {% endblock %}
