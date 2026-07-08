@@ -18,6 +18,7 @@ All notable changes to this project are documented here. The format follows
 - API keys plugin: create/list/revoke/verify, hashed at rest, shown once, expiry + last-used.
 - Admin plugin: config-bootstrapped admins, roles, ban/unban with a sign-in ban gate (via hooks),
   list/create/remove users, and revoke-user-sessions.
+- JWT plugin: issue/verify short-lived HS256 tokens (HKDF-derived key) for stateless API access.
 
 - Project scaffold: packaging, dev tooling, CI, and governance.
 - Architecture specification, STRIDE threat model, and initial ADRs.
