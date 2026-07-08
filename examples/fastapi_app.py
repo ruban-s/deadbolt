@@ -28,7 +28,7 @@ app = FastAPI(title="deadbolt example")
 
 auth = db.Auth(
     adapter=db.MemoryAdapter(),
-    secret="change-me-to-32+-random-bytes-please",
+    secret="change-me-to-32+-random-bytes-please",  # noqa: S106
     email_and_password=db.EmailPassword(enabled=True),
     plugins=[magic_link()],
 )
