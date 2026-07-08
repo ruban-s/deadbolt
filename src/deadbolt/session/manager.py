@@ -66,23 +66,29 @@ class SessionManager:
         if row is None:
             return None
         moment = self._now()
-        if row["expires_at"] <= moment:
+        absolute_end = row["created_at"] + timedelta(seconds=self._config.max_lifetime)
+        if row["expires_at"] <= moment or moment >= absolute_end:
             await self._delete(row["token"])
             return None
-        return await self._maybe_refresh(row, moment)
+        return await self._maybe_refresh(row, moment, absolute_end)
 
-    async def _maybe_refresh(self, row: Row, moment: datetime) -> Row:
+    async def _maybe_refresh(self, row: Row, moment: datetime, absolute_end: datetime) -> Row:
         due = row["updated_at"] + timedelta(seconds=self._config.update_age)
         if moment < due:
             return row
         update = {
-            "expires_at": moment + timedelta(seconds=self._config.expires_in),
+            "expires_at": min(moment + timedelta(seconds=self._config.expires_in), absolute_end),
             "updated_at": moment,
         }
         refreshed = await self._adapter.update(
             model="session", where=[Where("token", row["token"])], update=update
         )
         return refreshed if refreshed is not None else row
+
+    def is_fresh(self, session: Row, now: datetime | None = None) -> bool:
+        """Whether ``session`` was created within ``fresh_age`` (for sensitive ops)."""
+        moment = now or self._now()
+        return bool(moment - session["created_at"] < timedelta(seconds=self._config.fresh_age))
 
     async def revoke(self, token: str) -> None:
         await self._delete(hash_token(token))

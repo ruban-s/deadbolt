@@ -20,6 +20,7 @@ class SessionConfig:
     expires_in: int = 7 * _DAY
     update_age: int = _DAY
     fresh_age: int = _DAY
+    max_lifetime: int = 30 * _DAY
 
 
 @dataclass(frozen=True)
