@@ -6,7 +6,7 @@ from datetime import timedelta
 from typing import TYPE_CHECKING, Any
 
 from .._util import new_id, utcnow
-from ..crypto import generate_token
+from ..crypto import generate_token, hash_token
 from ..db.types import Row, Where
 from ..errors import APIError
 from . import _service as svc
@@ -18,6 +18,13 @@ if TYPE_CHECKING:
 
 _INVALID_CREDENTIALS = APIError(401, "invalid_credentials", "Invalid email or password.")
 _RESET_TTL_SECONDS = 60 * 60
+
+# A fixed valid Argon2id hash verified on the credential-miss path so that an
+# unknown email costs the same as a known one, closing the timing/enumeration
+# side-channel. The plaintext behind it is irrelevant; verification always fails.
+_DECOY_HASH = (
+    "$argon2id$v=19$m=65536,t=3,p=4$zDXizTs6UjYCMUf6zTqxcg$nt/WlMDPygbKT1Ojq4b1qjok02RRLkXG1XmGdNxdYm0"
+)
 
 
 def _require_str(body: dict[str, Any], key: str) -> str:
@@ -74,6 +81,7 @@ async def sign_in_email(auth: Auth, req: EndpointRequest) -> EndpointResult:
     user = await svc.find_user_by_email(auth.adapter, email)
     account = await svc.credential_account(auth.adapter, user["id"]) if user else None
     if user is None or account is None or not account.get("password"):
+        await auth.hasher.verify(_DECOY_HASH, password)
         raise _INVALID_CREDENTIALS
     if not await auth.hasher.verify(account["password"], password):
         raise _INVALID_CREDENTIALS
@@ -144,7 +152,7 @@ async def request_password_reset(auth: Auth, req: EndpointRequest) -> EndpointRe
     user = await svc.find_user_by_email(auth.adapter, email)
     if user is not None:
         token = generate_token()
-        await _create_verification(auth, identifier=email, value=token)
+        await _create_verification(auth, identifier=email, value=hash_token(token))
         if auth.email_sender is not None:
             await auth.email_sender.send(
                 to=email, subject="Reset your password", body=f"Reset token: {token}"
@@ -157,7 +165,8 @@ async def reset_password(auth: Auth, req: EndpointRequest) -> EndpointResult:
     new_password = _require_str(req.body, "new_password")
     _validate_new_password(auth, new_password)
 
-    record = await auth.adapter.find_one(model="verification", where=[Where("value", token)])
+    token_hash = hash_token(token)
+    record = await auth.adapter.find_one(model="verification", where=[Where("value", token_hash)])
     if record is None or record["expires_at"] <= utcnow():
         raise APIError(400, "invalid_token", "The reset token is invalid or expired.")
 
@@ -169,7 +178,7 @@ async def reset_password(auth: Auth, req: EndpointRequest) -> EndpointResult:
     await svc.set_account_password(
         auth.adapter, account_id=account["id"], password_hash=await auth.hasher.hash(new_password)
     )
-    await auth.adapter.delete(model="verification", where=[Where("value", token)])
+    await auth.adapter.delete(model="verification", where=[Where("value", token_hash)])
     await auth.sessions.revoke_all(user["id"])
     return EndpointResult(data={"success": True})
 

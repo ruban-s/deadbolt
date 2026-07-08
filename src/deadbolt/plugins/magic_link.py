@@ -6,7 +6,7 @@ from datetime import timedelta
 from typing import TYPE_CHECKING, Any
 
 from .._util import new_id, utcnow
-from ..crypto import generate_token
+from ..crypto import generate_token, hash_token
 from ..db.types import Where
 from ..endpoints._service import create_user, find_user_by_email, public_user
 from ..endpoints.context import EndpointResult
@@ -34,7 +34,7 @@ def magic_link(*, expires_in: int = _DEFAULT_TTL) -> Plugin:
             data={
                 "id": new_id(),
                 "identifier": f"{_IDENTIFIER_PREFIX}{email}",
-                "value": token,
+                "value": hash_token(token),
                 "expires_at": now + timedelta(seconds=expires_in),
                 "created_at": now,
             },
@@ -47,7 +47,10 @@ def magic_link(*, expires_in: int = _DEFAULT_TTL) -> Plugin:
 
     async def verify(auth: Auth, req: EndpointRequest) -> EndpointResult:
         token = _require(req.body, "token")
-        record = await auth.adapter.find_one(model="verification", where=[Where("value", token)])
+        token_hash = hash_token(token)
+        record = await auth.adapter.find_one(
+            model="verification", where=[Where("value", token_hash)]
+        )
         if record is None or not _is_magic(record) or record["expires_at"] <= utcnow():
             raise APIError(400, "invalid_token", "The magic link is invalid or expired.")
 
@@ -60,7 +63,7 @@ def magic_link(*, expires_in: int = _DEFAULT_TTL) -> Plugin:
         )
         user["email_verified"] = True
 
-        await auth.adapter.delete(model="verification", where=[Where("value", token)])
+        await auth.adapter.delete(model="verification", where=[Where("value", token_hash)])
         session_token, _ = await auth.sessions.create(user["id"], ip=req.client_ip)
         return EndpointResult(
             data={"user": public_user(user)}, cookies=[auth.sessions.build_cookie(session_token)]
