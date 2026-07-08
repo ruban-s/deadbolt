@@ -7,7 +7,7 @@ import pytest
 import deadbolt as db
 from _helpers import fast_hasher
 from deadbolt.http import MultiDict
-from deadbolt.plugins.organization import organization
+from deadbolt.plugins.organization import access_control, organization
 
 pytestmark = pytest.mark.anyio
 
@@ -425,3 +425,133 @@ async def test_leave_when_not_member() -> None:
     org_id = await create_org(auth, owner)
     resp = await auth.handle(post("/organization/leave", {"organization_id": org_id}, stranger))
     assert resp.status == 404
+
+
+
+
+def build_custom_auth() -> db.Auth:
+    ac = access_control(
+        roles={
+            "owner": {
+                "organization": ["update", "delete"],
+                "invitation": ["create", "cancel"],
+                "billing": ["manage"],
+            },
+            "billing": {"billing": ["manage"]},
+            "viewer": {},
+        },
+        hierarchy=("viewer", "billing", "owner"),
+        creator_role="owner",
+        invite_default="viewer",
+    )
+    return db.Auth(
+        adapter=db.MemoryAdapter(),
+        secret="x" * 32,
+        email_and_password=db.EmailPassword(enabled=True),
+        hasher=fast_hasher(),
+        plugins=[organization(access=ac)],
+    )
+
+
+async def test_custom_roles_and_permissions() -> None:
+    auth = build_custom_auth()
+    owner = await signup(auth, "owner@b.com")
+    org_id = await create_org(auth, owner)
+
+    can_bill = await auth.handle(
+        post(
+            "/organization/has-permission",
+            {"organization_id": org_id, "permissions": {"billing": ["manage"]}},
+            owner,
+        )
+    )
+    assert json.loads(can_bill.body)["allowed"] is True
+
+    invited = await auth.handle(
+        post(
+            "/organization/invite",
+            {"organization_id": org_id, "email": "v@b.com", "role": "viewer"},
+            owner,
+        )
+    )
+    assert invited.status == 200
+    assert json.loads(invited.body)["invitation"]["role"] == "viewer"
+
+
+async def test_custom_role_unknown_rejected() -> None:
+    auth = build_custom_auth()
+    owner = await signup(auth, "owner@b.com")
+    org_id = await create_org(auth, owner)
+    resp = await auth.handle(
+        post(
+            "/organization/invite",
+            {"organization_id": org_id, "email": "x@b.com", "role": "admin"},
+            owner,
+        )
+    )
+    assert resp.status == 400
+    assert json.loads(resp.body)["error"]["code"] == "invalid_role"
+
+
+async def _team_setup(auth: db.Auth) -> tuple[dict[str, str], dict[str, str], str, str, str]:
+    owner, member, org_id, member_id = await _member_setup(auth)
+    created = await auth.handle(
+        post("/organization/create-team", {"organization_id": org_id, "name": "Eng"}, owner)
+    )
+    team_id = json.loads(created.body)["team"]["id"]
+    return owner, member, org_id, member_id, team_id
+
+
+async def test_team_lifecycle() -> None:
+    auth = build_auth()
+    owner, _member, org_id, member_id, team_id = await _team_setup(auth)
+
+    listed = db.AuthRequest(
+        method="GET",
+        path="/organization/list-teams",
+        query=MultiDict([("organization_id", org_id)]),
+        cookies=owner,
+    )
+    teams = json.loads((await auth.handle(listed)).body)["teams"]
+    assert [t["name"] for t in teams] == ["Eng"]
+
+    renamed = await auth.handle(
+        post("/organization/update-team", {"team_id": team_id, "name": "Platform"}, owner)
+    )
+    assert json.loads(renamed.body)["team"]["name"] == "Platform"
+
+    added = await auth.handle(
+        post("/organization/add-team-member", {"team_id": team_id, "user_id": member_id}, owner)
+    )
+    assert added.status == 200
+    members_req = db.AuthRequest(
+        method="GET",
+        path="/organization/list-team-members",
+        query=MultiDict([("team_id", team_id)]),
+        cookies=owner,
+    )
+    assert len(json.loads((await auth.handle(members_req)).body)["members"]) == 1
+
+    await auth.handle(
+        post("/organization/remove-team-member", {"team_id": team_id, "user_id": member_id}, owner)
+    )
+    removed = await auth.handle(post("/organization/remove-team", {"team_id": team_id}, owner))
+    assert removed.status == 200
+
+
+async def test_team_create_requires_permission() -> None:
+    auth = build_auth()
+    _owner, member, org_id, _ = await _member_setup(auth)
+    resp = await auth.handle(
+        post("/organization/create-team", {"organization_id": org_id, "name": "X"}, member)
+    )
+    assert resp.status == 403
+
+
+async def test_add_team_member_requires_org_member() -> None:
+    auth = build_auth()
+    owner, _m, _org_id, _mid, team_id = await _team_setup(auth)
+    resp = await auth.handle(
+        post("/organization/add-team-member", {"team_id": team_id, "user_id": "ghost"}, owner)
+    )
+    assert resp.status == 400
