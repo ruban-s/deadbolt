@@ -1,8 +1,12 @@
 from __future__ import annotations
 
 import json
+from typing import TYPE_CHECKING
 
 import pytest
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 import deadbolt as db
 from _helpers import fast_hasher
@@ -39,6 +43,58 @@ class CapturingEmail:
 
 def post(path: str, body: object) -> db.AuthRequest:
     return db.AuthRequest(method="POST", path=path, body=json.dumps(body).encode())
+
+
+def _basic_auth(trusted_origins: Sequence[str] = ()) -> db.Auth:
+    return db.Auth(
+        adapter=db.MemoryAdapter(),
+        secret="x" * 32,
+        email_and_password=db.EmailPassword(enabled=True),
+        hasher=fast_hasher(),
+        trusted_origins=trusted_origins,
+    )
+
+
+def _signup(origin: str | None = None, base_url: str | None = None) -> db.AuthRequest:
+    headers = db.http.MultiDict([("origin", origin)]) if origin else db.http.MultiDict()
+    return db.AuthRequest(
+        method="POST",
+        path="/sign-up/email",
+        headers=headers,
+        body=json.dumps({"email": "a@b.com", "password": "hunter2pw"}).encode(),
+        base_url=base_url,
+    )
+
+
+async def test_untrusted_origin_rejected() -> None:
+    auth = _basic_auth()
+    resp = await auth.handle(_signup(origin="https://evil.com", base_url="https://app.com"))
+    assert resp.status == 403
+    assert json.loads(resp.body)["error"]["code"] == "untrusted_origin"
+
+
+async def test_same_origin_allowed() -> None:
+    auth = _basic_auth()
+    resp = await auth.handle(_signup(origin="https://app.com", base_url="https://app.com/api"))
+    assert resp.status == 200
+
+
+async def test_configured_trusted_origin_allowed() -> None:
+    auth = _basic_auth(trusted_origins=["https://trusted.com"])
+    resp = await auth.handle(_signup(origin="https://trusted.com", base_url="https://app.com"))
+    assert resp.status == 200
+
+
+async def test_wildcard_trusted_origin() -> None:
+    auth = _basic_auth(trusted_origins=["chrome-extension://*"])
+    resp = await auth.handle(_signup(origin="chrome-extension://abc123", base_url="https://app.com"))
+    assert resp.status == 200
+
+
+async def test_missing_origin_allowed() -> None:
+    auth = _basic_auth()
+    resp = await auth.handle(_signup(base_url="https://app.com"))
+    assert resp.status == 200
 
 
 async def test_sign_in_hashes_even_for_unknown_user() -> None:
