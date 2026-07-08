@@ -8,38 +8,34 @@ from typing import TYPE_CHECKING, Any
 from .types import AdapterConfig
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Callable, Sequence
 
     from .types import Row, SortBy, TableSpec, Where
+
+_COMPARATORS: dict[str, Callable[[Any, Any], bool]] = {
+    "eq": lambda a, e: bool(a == e),
+    "ne": lambda a, e: bool(a != e),
+    "in": lambda a, e: a in e,
+    "lt": lambda a, e: bool(a < e),
+    "lte": lambda a, e: bool(a <= e),
+    "gt": lambda a, e: bool(a > e),
+    "gte": lambda a, e: bool(a >= e),
+    "contains": lambda a, e: e in a,
+    "starts_with": lambda a, e: str(a).startswith(str(e)),
+    "ends_with": lambda a, e: str(a).endswith(str(e)),
+}
+_NULL_SAFE = frozenset({"eq", "ne", "in"})
 
 
 def _matches(row: Row, condition: Where) -> bool:
     actual = row.get(condition.field)
-    expected = condition.value
-    op = condition.operator
-    if op == "eq":
-        return bool(actual == expected)
-    if op == "ne":
-        return bool(actual != expected)
-    if op == "in":
-        return actual in expected
-    if actual is None:
+    if actual is None and condition.operator not in _NULL_SAFE:
         return False
-    if op == "lt":
-        return bool(actual < expected)
-    if op == "lte":
-        return bool(actual <= expected)
-    if op == "gt":
-        return bool(actual > expected)
-    if op == "gte":
-        return bool(actual >= expected)
-    if op == "contains":
-        return expected in actual
-    if op == "starts_with":
-        return str(actual).startswith(str(expected))
-    if op == "ends_with":
-        return str(actual).endswith(str(expected))
-    raise ValueError(f"unsupported operator: {op}")
+    try:
+        comparator = _COMPARATORS[condition.operator]
+    except KeyError as error:  # pragma: no cover - guards runtime misuse of the Operator type
+        raise ValueError(f"unsupported operator: {condition.operator}") from error
+    return comparator(actual, condition.value)
 
 
 def _row_matches(row: Row, where: Sequence[Where]) -> bool:
@@ -143,5 +139,5 @@ class MemoryAdapter:
         return ""
 
 
-def _sort_key(value: Any) -> tuple[int, Any]:
+def _sort_key(value: object) -> tuple[int, object]:
     return (0, value) if value is not None else (-1, "")
