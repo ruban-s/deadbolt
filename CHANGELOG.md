@@ -38,5 +38,7 @@ All notable changes to this project are documented here. The format follows
 - Social OAuth plugin (`deadbolt.plugins.oauth.social`) with Google and GitHub providers:
   authorization-code flow with PKCE, hashed/single-use state, account linking, and optional
   post-login redirect. Endpoints double as callables and set response headers.
+- Hook system (`Hook`, `Hooks`, `HookContext`): path-scoped before/after request hooks that can
+  block requests or rewrite results, registered on `Auth` or contributed by plugins.
 - SQLAlchemy 2.0 Core async adapter over Postgres/MySQL/SQLite, with dates stored as
   ISO-8601 for identical timezone-aware round-trips across dialects.
