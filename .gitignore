@@ -1,0 +1,48 @@
+# Byte-compiled / optimized / caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.hypothesis/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# uv
+# (uv.lock IS committed — it is the dev/CI lockfile)
+
+# Tooling / editors
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Secrets / local config — never commit
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Docs build
+site/
+docs/_build/
+
+# SBOM / release artifacts
+sbom*.json
+*.sig
+*.sigstore
