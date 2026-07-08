@@ -5,6 +5,17 @@ All notable changes to this project are documented here. The format follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html), and entries are generated
 from [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [0.2.1] - 2026-07-08
+
+### Bug Fixes
+- Point Documentation URL at repo docs instead of nonexistent readthedocs site
+
+### Documentation
+- Scheme-aware header, announcement copy button, dynamic version
+- Brand redesign with custom logo, palette, and hero landing
+- Add full MkDocs Material documentation site
+- Move internal design notes out of the published docs
+
 ## [0.2.0] - 2026-07-08
 
 ### Build & Packaging
@@ -14,6 +25,7 @@ from [Conventional Commits](https://www.conventionalcommits.org/).
 - Create a GitHub Release with categorized notes on tag push
 
 ### Documentation
+- Changelog for v0.2.0
 - Generate categorized changelog and add RELEASING guide
 - Use absolute links in README so they render on PyPI
 - Record username and phone plugins
