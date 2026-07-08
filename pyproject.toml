@@ -96,6 +96,7 @@ known-first-party = ["deadbolt"]
 
 [tool.mypy]
 python_version = "3.11"
+mypy_path = "src"
 strict = true
 warn_unreachable = true
 warn_redundant_casts = true
