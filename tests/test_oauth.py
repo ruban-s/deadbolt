@@ -222,3 +222,35 @@ async def test_github_provider_maps_login_as_name() -> None:
     result = await auth.handle(callback(state))
     assert result.status == 200
     assert json.loads(result.body)["user"]["name"] == "octocat"
+
+
+async def test_link_social_to_existing_user() -> None:
+    auth = build_auth({"sub": "g-99", "email": "linker@b.com", "name": "L"})
+    signup = await auth.handle(
+        db.AuthRequest(
+            method="POST",
+            path="/sign-up/email",
+            body=json.dumps({"email": "me@b.com", "password": "hunter2pw"}).encode(),
+        )
+    )
+    cookies = {c.name: c.value for c in signup.cookies if c.value}
+
+    started = await auth.handle(
+        db.AuthRequest(
+            method="POST",
+            path="/link-social",
+            body=json.dumps({"provider": "google"}).encode(),
+            cookies=cookies,
+        )
+    )
+    assert started.status == 200
+    state = parse_qs(urlsplit(json.loads(started.body)["url"]).query)["state"][0]
+
+    done = await auth.handle(callback(state))
+    assert done.status == 200
+    assert json.loads(done.body) == {"success": True}
+    accounts = await auth.handle(
+        db.AuthRequest(method="GET", path="/list-accounts", cookies=cookies)
+    )
+    providers = {a["provider_id"] for a in json.loads(accounts.body)["accounts"]}
+    assert providers == {"credential", "google"}

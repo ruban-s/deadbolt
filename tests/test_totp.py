@@ -186,3 +186,15 @@ async def test_reenroll_replaces_and_resets() -> None:
     rows = await auth.adapter.find_many(model="two_factor")
     assert len(rows) == 1
     assert rows[0]["enabled"] is False
+
+
+async def test_regenerate_backup_codes() -> None:
+    auth = build_auth()
+    cookies = await signup(auth)
+    secret, old = await enroll_and_enable(auth, cookies)
+    resp = await auth.handle(
+        post("/2fa/totp/backup-codes", {"code": pyotp.TOTP(secret).now()}, cookies)
+    )
+    assert resp.status == 200
+    new = json.loads(resp.body)["backup_codes"]
+    assert set(new).isdisjoint(old)

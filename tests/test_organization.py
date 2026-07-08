@@ -427,8 +427,6 @@ async def test_leave_when_not_member() -> None:
     assert resp.status == 404
 
 
-
-
 def build_custom_auth() -> db.Auth:
     ac = access_control(
         roles={
