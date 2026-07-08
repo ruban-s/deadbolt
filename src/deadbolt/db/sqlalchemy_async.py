@@ -168,17 +168,20 @@ class SQLAlchemyAdapter:
 
     def _clause(self, model: str, where: Sequence[Where]) -> ColumnElement[bool]:
         table = self._table(model)
-        ands = [self._condition(table, c) for c in where if c.connector == "AND"]
-        ors = [self._condition(table, c) for c in where if c.connector == "OR"]
+        dates = self._date_fields[model]
+        ands = [self._condition(table, c, dates) for c in where if c.connector == "AND"]
+        ors = [self._condition(table, c, dates) for c in where if c.connector == "OR"]
         clause: ColumnElement[bool] = and_(true(), *ands)
         if ors:
             clause = and_(clause, or_(*ors))
         return clause
 
     @staticmethod
-    def _condition(table: Table, condition: Where) -> ColumnElement[bool]:
+    def _condition(table: Table, condition: Where, dates: set[str]) -> ColumnElement[bool]:
         column = table.c[condition.field]
         value = condition.value
+        if condition.field in dates and isinstance(value, datetime):
+            value = value.isoformat()
         builders: dict[str, Callable[[], ColumnElement[bool]]] = {
             "eq": lambda: column == value,
             "ne": lambda: column != value,
