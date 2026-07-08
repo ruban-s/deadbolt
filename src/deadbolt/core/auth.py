@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from .._sync import SyncBridge
 from ..crypto import Argon2Hasher, CookieSigner
 from ..endpoints import Registry
 from ..errors import ConfigError
@@ -62,10 +63,19 @@ class Auth:
         )
         self._router = Router(self, Registry())
         self._api = Api(self, Registry())
+        self._bridge = SyncBridge()
 
     async def handle(self, request: AuthRequest) -> AuthResponse:
         """Route ``request`` to an endpoint and return the response."""
         return await self._router.handle(request)
+
+    def handle_sync(self, request: AuthRequest) -> AuthResponse:
+        """Serve ``request`` from synchronous (WSGI) code via the sync bridge."""
+        return self._bridge.run(self.handle, request)
+
+    def close(self) -> None:
+        """Shut down the background loop backing the sync bridge, if started."""
+        self._bridge.close()
 
     @property
     def api(self) -> Api:
