@@ -24,9 +24,9 @@ from .protocols import (
     AsyncDatabaseAdapter,
     EmailSender,
     Hasher,
-    RateLimiter,
     SessionStore,
 )
+from .ratelimit import RateLimit, RateLimitRule, RateLimitStore
 
 try:
     __version__ = metadata.version("deadbolt")
@@ -49,7 +49,9 @@ __all__ = [
     "Hasher",
     "MemoryAdapter",
     "Plugin",
-    "RateLimiter",
+    "RateLimit",
+    "RateLimitRule",
+    "RateLimitStore",
     "SQLAlchemyAdapter",
     "SessionConfig",
     "SessionStore",

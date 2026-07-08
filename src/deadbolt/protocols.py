@@ -79,8 +79,3 @@ class EmailSender(Protocol):
     """Delivers verification and password-reset messages."""
 
     async def send(self, *, to: str, subject: str, body: str) -> None: ...
-
-
-@runtime_checkable
-class RateLimiter(Protocol):
-    async def check(self, key: str) -> bool: ...

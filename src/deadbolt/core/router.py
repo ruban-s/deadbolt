@@ -40,6 +40,9 @@ class Router:
         if not is_trusted_request(request, self._auth.trusted_origins):
             return self._error(APIError(403, "untrusted_origin", "Request origin is not trusted."))
 
+        if not await self._auth.rate_limiter.check(request.path, request.client_ip):
+            return self._error(APIError(429, "rate_limited", "Too many requests."))
+
         try:
             body = self._parse_body(request)
         except APIError as error:
