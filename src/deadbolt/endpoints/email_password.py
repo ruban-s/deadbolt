@@ -19,14 +19,6 @@ if TYPE_CHECKING:
 _INVALID_CREDENTIALS = APIError(401, "invalid_credentials", "Invalid email or password.")
 _RESET_TTL_SECONDS = 60 * 60
 
-# A fixed valid Argon2id hash verified on the credential-miss path so that an
-# unknown email costs the same as a known one, closing the timing/enumeration
-# side-channel. The plaintext behind it is irrelevant; verification always fails.
-_DECOY_HASH = (
-    "$argon2id$v=19$m=65536,t=3,p=4$zDXizTs6UjYCMUf6zTqxcg$"
-    "nt/WlMDPygbKT1Ojq4b1qjok02RRLkXG1XmGdNxdYm0"
-)
-
 
 def _require_str(body: dict[str, Any], key: str) -> str:
     value = body.get(key)
@@ -82,7 +74,7 @@ async def sign_in_email(auth: Auth, req: EndpointRequest) -> EndpointResult:
     user = await svc.find_user_by_email(auth.adapter, email)
     account = await svc.credential_account(auth.adapter, user["id"]) if user else None
     if user is None or account is None or not account.get("password"):
-        await auth.hasher.verify(_DECOY_HASH, password)
+        await auth.hasher.verify(svc.DECOY_HASH, password)
         raise _INVALID_CREDENTIALS
     if not await auth.hasher.verify(account["password"], password):
         raise _INVALID_CREDENTIALS

@@ -15,6 +15,14 @@ if TYPE_CHECKING:
 
 CREDENTIAL_PROVIDER = "credential"
 
+# A fixed valid Argon2id hash verified on the credential-miss path so an unknown
+# identifier costs the same as a known one, closing the timing/enumeration
+# side-channel. The plaintext is irrelevant; verification always fails.
+DECOY_HASH = (
+    "$argon2id$v=19$m=65536,t=3,p=4$zDXizTs6UjYCMUf6zTqxcg$"
+    "nt/WlMDPygbKT1Ojq4b1qjok02RRLkXG1XmGdNxdYm0"
+)
+
 
 def require_str(body: dict[str, Any], key: str) -> str:
     value = body.get(key)
