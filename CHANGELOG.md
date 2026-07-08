@@ -44,5 +44,7 @@ All notable changes to this project are documented here. The format follows
 - TOTP two-factor plugin (`deadbolt.plugins.totp.totp`): encrypted secret at rest, enroll/enable/
   disable, hashed single-use backup codes, and a sign-in after-hook that turns login into a 2FA
   challenge for enrolled users.
+- `deadbolt` CLI: `deadbolt generate --config module:attr --dialect {postgresql,mysql,sqlite}`
+  emits SQL DDL for the full schema (core plus plugin tables) derived from your `Auth` config.
 - SQLAlchemy 2.0 Core async adapter over Postgres/MySQL/SQLite, with dates stored as
   ISO-8601 for identical timezone-aware round-trips across dialects.
