@@ -14,6 +14,10 @@ All notable changes to this project are documented here. The format follows
   `revoke-other-sessions`.
 - Account linking: `list-accounts`, `unlink-account`, and OAuth `link-social` (link a provider to
   the signed-in user); TOTP backup-code regeneration (`/2fa/totp/backup-codes`).
+- Email-OTP plugin: passwordless sign-in via an attempts-limited one-time code.
+- API keys plugin: create/list/revoke/verify, hashed at rest, shown once, expiry + last-used.
+- Admin plugin: config-bootstrapped admins, roles, ban/unban with a sign-in ban gate (via hooks),
+  list/create/remove users, and revoke-user-sessions.
 
 - Project scaffold: packaging, dev tooling, CI, and governance.
 - Architecture specification, STRIDE threat model, and initial ADRs.
