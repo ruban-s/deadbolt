@@ -81,9 +81,7 @@ class Router:
             status=result.status, headers=headers, body=_encode(result.data), cookies=result.cookies
         )
 
-    async def _run(
-        self, handler: Handler, req: EndpointRequest, path: str
-    ) -> EndpointResult:
+    async def _run(self, handler: Handler, req: EndpointRequest, path: str) -> EndpointResult:
         for hook in self._auth.before_hooks:
             if hook.matches(path):
                 await hook.run(HookContext(self._auth, req, path))
