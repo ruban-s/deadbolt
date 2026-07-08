@@ -74,3 +74,35 @@ async def set_account_password(
         where=[Where("id", account_id)],
         update={"password": password_hash, "updated_at": utcnow()},
     )
+
+
+async def find_provider_account(
+    adapter: AsyncDatabaseAdapter, *, provider_id: str, account_id: str
+) -> Row | None:
+    return await adapter.find_one(
+        model="account",
+        where=[Where("provider_id", provider_id), Where("account_id", account_id)],
+    )
+
+
+async def create_provider_account(
+    adapter: AsyncDatabaseAdapter, *, user_id: str, provider_id: str, account_id: str
+) -> Row:
+    now = utcnow()
+    account: Row = {
+        "id": new_id(),
+        "user_id": user_id,
+        "provider_id": provider_id,
+        "account_id": account_id,
+        "password": None,
+        "created_at": now,
+        "updated_at": now,
+    }
+    await adapter.create(model="account", data=account)
+    return account
+
+
+async def mark_email_verified(adapter: AsyncDatabaseAdapter, *, user_id: str) -> None:
+    await adapter.update(
+        model="user", where=[Where("id", user_id)], update={"email_verified": True}
+    )
