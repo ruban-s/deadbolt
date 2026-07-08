@@ -88,9 +88,7 @@ class SessionManager:
         await self._delete(hash_token(token))
 
     async def revoke_all(self, user_id: str) -> int:
-        return await self._adapter.delete_many(
-            model="session", where=[Where("user_id", user_id)]
-        )
+        return await self._adapter.delete_many(model="session", where=[Where("user_id", user_id)])
 
     async def _delete(self, token_hash: str) -> None:
         await self._adapter.delete(model="session", where=[Where("token", token_hash)])

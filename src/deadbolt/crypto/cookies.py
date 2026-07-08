@@ -16,9 +16,7 @@ class CookieSigner:
 
     def __init__(self, secret: str | bytes, *, salt: str = "session") -> None:
         key = derive_key(secret, _COOKIE_INFO)
-        self._signer = Signer(
-            key, salt=salt, digest_method=hashlib.sha256, key_derivation="hmac"
-        )
+        self._signer = Signer(key, salt=salt, digest_method=hashlib.sha256, key_derivation="hmac")
 
     def sign(self, value: str) -> str:
         return self._signer.sign(value).decode()
