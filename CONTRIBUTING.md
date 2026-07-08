@@ -24,7 +24,7 @@ uv run pytest
 We use [Conventional Commits](https://www.conventionalcommits.org/) — releases and the changelog are
 generated from them.
 
-```
+```text
 feat(session): add sliding-window refresh
 fix(cookie): reject tampered signatures before DB lookup
 ```
