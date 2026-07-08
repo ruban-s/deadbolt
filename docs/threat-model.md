@@ -21,8 +21,10 @@ secret).
 - **Session forgery / fixation.** Opaque 256-bit tokens; only `SHA-256(token)` stored; the session id
   rotates on every privilege change and the prior row is deleted. Signed cookies let tampered values
   be rejected before a DB lookup.
-- **Credential stuffing / brute force.** Argon2id is deliberately slow; login and reset endpoints are
-  rate-limited (plugin); no user-enumeration difference between "unknown email" and "wrong password".
+- **Credential stuffing / brute force.** Argon2id is deliberately slow; sign-in, sign-up, and reset
+  endpoints are rate-limited (built-in, per-path). A decoy Argon2 verify on the credential-miss path
+  makes unknown and known emails cost the same — no timing-based user enumeration, and error messages
+  are identical.
 
 ### Tampering
 
@@ -33,22 +35,25 @@ secret).
 
 ### Repudiation
 
-- Session rows carry `ip_address`, `user_agent`, and timestamps. Auth events are emitted through a
-  structured, redacting logger for an audit trail.
+- Session rows carry `ip_address`, `user_agent`, and timestamps. A structured, redacting audit log
+  is planned (not yet implemented) — the library currently performs no logging of its own.
 
 ### Information disclosure
 
-- **Password/token leakage.** Passwords are never stored plaintext; session tokens are stored hashed;
-  logs use a redacting processor and never emit secrets, tokens, or hashes.
+- **Password/token leakage.** Passwords are never stored plaintext; session, reset, and magic-link
+  tokens are all stored as SHA-256 hashes, so a database read yields no usable tokens. The library
+  emits no logs today, so no secrets are logged; a redacting logger is planned.
 - **Cookie readability.** Signed cookies are readable by design, so nothing sensitive goes in a merely
-  signed payload; the encrypted cookie mode uses AEAD with context-binding AAD.
-- **Timing oracles.** Token and MAC comparisons use constant-time primitives
-  (`secrets.compare_digest` / `cryptography` HMAC verify).
+  signed payload; the encrypted cookie-cache mode (planned) uses AEAD with context-binding AAD.
+- **Timing oracles.** Session tokens are looked up by hash; sign-in runs a decoy Argon2 verify on the
+  miss path; MAC comparison uses `itsdangerous`' constant-time verify.
 
 ### Denial of service
 
-- **Argon2 memory pressure.** Hashing runs off the event loop and behind rate limits; parameters are
-  tuned to a target latency, not maxed blindly.
+- **Argon2 memory pressure.** Hashing runs off the event loop and behind per-path rate limits;
+  parameters are tuned to a target latency, not maxed blindly.
+- **Oversized payloads.** A request body-size limit (`max_body_bytes`) rejects large bodies; the ASGI
+  server should also cap body size upstream.
 - **Decompression / parser bombs.** JOSE handling avoids known-abandoned libraries (no `python-jose`);
   parsers are fuzzed (Atheris) before 1.0.
 

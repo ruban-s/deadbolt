@@ -21,5 +21,16 @@ All notable changes to this project are documented here. The format follows
   synchronous frameworks from the single async core via one background event loop.
 - Plugin system (`Plugin`): plugins contribute endpoints and schema, merged into the
   router at construction. First plugin: `magic_link` passwordless sign-in/sign-up.
+
+### Security
+
+- Reset and magic-link tokens are hashed (SHA-256) at rest, like session tokens.
+- Constant-time sign-in: a decoy Argon2 verify runs on the credential-miss path, so
+  unknown and known emails cost the same (no timing/enumeration side-channel).
+- Trusted-origin CSRF check on state-changing requests (`trusted_origins`, wildcards).
+- Rate limiting with global window/max plus per-path rules and pluggable storage
+  (`RateLimit`, `RateLimitRule`, `RateLimitStore`).
+- Absolute session lifetime cap beyond sliding refresh; `SessionManager.is_fresh` for
+  gating sensitive actions; request body-size limit (`max_body_bytes`).
 - SQLAlchemy 2.0 Core async adapter over Postgres/MySQL/SQLite, with dates stored as
   ISO-8601 for identical timezone-aware round-trips across dialects.
