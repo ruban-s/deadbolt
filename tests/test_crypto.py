@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
+from _helpers import fast_hasher
 from deadbolt.crypto import (
-    Argon2Hasher,
     CookieSigner,
     derive_key,
     generate_token,
@@ -15,7 +15,7 @@ pytestmark = pytest.mark.anyio
 
 
 async def test_hash_and_verify_roundtrip() -> None:
-    hasher = Argon2Hasher()
+    hasher = fast_hasher()
     hashed = await hasher.hash("correct horse")
     assert hashed != "correct horse"
     assert await hasher.verify(hashed, "correct horse")
@@ -23,7 +23,7 @@ async def test_hash_and_verify_roundtrip() -> None:
 
 
 async def test_verify_rejects_garbage_hash() -> None:
-    hasher = Argon2Hasher()
+    hasher = fast_hasher()
     assert not await hasher.verify("not-a-hash", "whatever")
 
 

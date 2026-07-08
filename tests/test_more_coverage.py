@@ -1,23 +1,14 @@
 from __future__ import annotations
 
 import json
-from typing import Any
 
 import pytest
 
 import deadbolt as db
+from _helpers import build_auth
 from deadbolt.db import MemoryAdapter, SortBy, Where
 
 pytestmark = pytest.mark.anyio
-
-
-def build_auth(**kw: Any) -> db.Auth:
-    return db.Auth(
-        adapter=MemoryAdapter(),
-        secret="x" * 32,
-        email_and_password=db.EmailPassword(enabled=True),
-        **kw,
-    )
 
 
 def post(path: str, body: object, cookies: dict[str, str] | None = None) -> db.AuthRequest:
@@ -125,5 +116,3 @@ async def test_memory_sort_with_nulls() -> None:
     await adapter.create(model="t", data={"id": "3", "rank": 1})
     ordered = await adapter.find_many(model="t", sort_by=SortBy("rank", "asc"))
     assert [r["id"] for r in ordered] == ["2", "3", "1"]
-
-

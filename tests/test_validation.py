@@ -5,17 +5,13 @@ import json
 import pytest
 
 import deadbolt as db
-from deadbolt.db import MemoryAdapter
+from _helpers import build_auth as _build_auth
 
 pytestmark = pytest.mark.anyio
 
 
 def build_auth() -> db.Auth:
-    return db.Auth(
-        adapter=MemoryAdapter(),
-        secret="x" * 32,
-        email_and_password=db.EmailPassword(enabled=True, max_password_length=16),
-    )
+    return _build_auth(email_and_password=db.EmailPassword(enabled=True, max_password_length=16))
 
 
 def post(path: str, body: object) -> db.AuthRequest:

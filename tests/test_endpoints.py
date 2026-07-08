@@ -6,6 +6,7 @@ from typing import Any
 import pytest
 
 import deadbolt as db
+from _helpers import build_auth
 from deadbolt.http import AuthRequest, MultiDict
 
 pytestmark = pytest.mark.anyio
@@ -17,15 +18,6 @@ class CapturingEmail:
 
     async def send(self, *, to: str, subject: str, body: str) -> None:
         self.token = body.rsplit(":", 1)[1].strip()
-
-
-def build_auth(**kw: Any) -> db.Auth:
-    return db.Auth(
-        adapter=db.MemoryAdapter(),
-        secret="x" * 32,
-        email_and_password=db.EmailPassword(enabled=True),
-        **kw,
-    )
 
 
 def request(

@@ -6,6 +6,7 @@ from typing import Any
 import pytest
 
 import deadbolt as db
+from _helpers import build_auth
 from deadbolt.core.config import CookieConfig, SessionConfig
 from deadbolt.crypto import CookieSigner
 from deadbolt.db import MemoryAdapter, Where
@@ -23,15 +24,6 @@ class RehashHasher:
 
     def needs_rehash(self, hashed: str) -> bool:
         return True
-
-
-def build_auth(**kw: Any) -> db.Auth:
-    return db.Auth(
-        adapter=MemoryAdapter(),
-        secret="x" * 32,
-        email_and_password=db.EmailPassword(enabled=True),
-        **kw,
-    )
 
 
 def req(
