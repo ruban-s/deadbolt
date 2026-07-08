@@ -19,5 +19,7 @@ All notable changes to this project are documented here. The format follows
 - FastAPI/Starlette mount adapter (`deadbolt.integrations.fastapi.mount`).
 - Flask (WSGI) mount adapter, with a sync bridge (`Auth.handle_sync`) that serves
   synchronous frameworks from the single async core via one background event loop.
+- Plugin system (`Plugin`): plugins contribute endpoints and schema, merged into the
+  router at construction. First plugin: `magic_link` passwordless sign-in/sign-up.
 - SQLAlchemy 2.0 Core async adapter over Postgres/MySQL/SQLite, with dates stored as
   ISO-8601 for identical timezone-aware round-trips across dialects.
