@@ -1,76 +1,111 @@
 # Changelog
 
 All notable changes to this project are documented here. The format follows
-[Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project adheres to
-[Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/), the project adheres to
+[Semantic Versioning](https://semver.org/spec/v2.0.0.html), and entries are generated
+from [Conventional Commits](https://www.conventionalcommits.org/).
 
 ## [Unreleased]
 
-### Added
+### Documentation
+- Use absolute links in README so they render on PyPI
+- Record username and phone plugins
+- Rewrite README for the 0.1.0 release with badges and plugin list
 
-- Email verification (`send-verification-email`, `verify-email`) with a `require_email_verification`
-  sign-in gate; `change-email` (immediate or verified); `update-user`; `delete-user`.
-- Session management endpoints: `list-sessions`, `revoke-session`, `revoke-sessions`,
-  `revoke-other-sessions`.
-- Account linking: `list-accounts`, `unlink-account`, and OAuth `link-social` (link a provider to
-  the signed-in user); TOTP backup-code regeneration (`/2fa/totp/backup-codes`).
-- Email-OTP plugin: passwordless sign-in via an attempts-limited one-time code.
-- API keys plugin: create/list/revoke/verify, hashed at rest, shown once, expiry + last-used.
-- Admin plugin: config-bootstrapped admins, roles, ban/unban with a sign-in ban gate (via hooks),
-  list/create/remove users, and revoke-user-sessions.
-- JWT plugin: issue/verify short-lived HS256 tokens (HKDF-derived key) for stateless API access.
-- Passkeys (WebAuthn) plugin (`deadbolt.plugins.passkeys`): registration and authentication
-  ceremonies via py_webauthn, challenge storage, per-credential sign-count tracking, and
-  list/delete management.
-- Username plugin: set a username and sign in with it (timing-safe), with an availability check.
-- Phone/SMS OTP plugin (`SmsSender` protocol): passwordless phone sign-in and phone linking, with
-  an attempts-limited code table.
+### Features
+- Add phone/SMS OTP plugin and SmsSender protocol
+- Add username sign-in plugin
 
-- Project scaffold: packaging, dev tooling, CI, and governance.
-- Architecture specification, STRIDE threat model, and initial ADRs.
-- Package skeleton with the alias-first public API, the `AuthRequest`/`AuthResponse`
-  contract, database adapter Protocols, and configuration types.
-- Core engine: in-memory database adapter, Argon2id password hashing, opaque
-  DB-backed sessions with signed cookies and sliding refresh, and HKDF key derivation.
-- Email/password endpoints (sign-up, sign-in, sign-out, get-session, change-password,
-  password reset) served over one `handle()` and callable directly via `auth.api`.
-- FastAPI/Starlette mount adapter (`deadbolt.integrations.fastapi.mount`).
-- Flask (WSGI) mount adapter, with a sync bridge (`Auth.handle_sync`) that serves
-  synchronous frameworks from the single async core via one background event loop.
-- Plugin system (`Plugin`): plugins contribute endpoints and schema, merged into the
-  router at construction. First plugin: `magic_link` passwordless sign-in/sign-up.
+### Refactor
+- Share the timing-safe decoy hash via the service layer
 
-### Security
+## [0.1.0] - 2026-07-08
 
-- Reset and magic-link tokens are hashed (SHA-256) at rest, like session tokens.
-- Constant-time sign-in: a decoy Argon2 verify runs on the credential-miss path, so
-  unknown and known emails cost the same (no timing/enumeration side-channel).
-- Trusted-origin CSRF check on state-changing requests (`trusted_origins`, wildcards).
-- Rate limiting with global window/max plus per-path rules and pluggable storage
-  (`RateLimit`, `RateLimitRule`, `RateLimitStore`).
-- Absolute session lifetime cap beyond sliding refresh; `SessionManager.is_fresh` for
-  gating sensitive actions; request body-size limit (`max_body_bytes`).
-- `Auth.cleanup_expired()` to purge expired sessions and verifications (run periodically).
-- Redacting per-request audit logging on the `deadbolt.audit` logger.
-- Portable date-range `Where` filtering across the memory and SQLAlchemy adapters.
-- Social OAuth plugin (`deadbolt.plugins.oauth.social`) with Google and GitHub providers:
-  authorization-code flow with PKCE, hashed/single-use state, account linking, and optional
-  post-login redirect. Endpoints double as callables and set response headers.
-- Hook system (`Hook`, `Hooks`, `HookContext`): path-scoped before/after request hooks that can
-  block requests or rewrite results, registered on `Auth` or contributed by plugins.
-- AEAD field encryption (`Encryptor`, AES-256-GCM over an HKDF-derived subkey).
-- TOTP two-factor plugin (`deadbolt.plugins.totp.totp`): encrypted secret at rest, enroll/enable/
-  disable, hashed single-use backup codes, and a sign-in after-hook that turns login into a 2FA
-  challenge for enrolled users.
-- `deadbolt` CLI: `deadbolt generate --config module:attr --dialect {postgresql,mysql,sqlite}`
-  emits SQL DDL for the full schema (core plus plugin tables) derived from your `Auth` config.
-- Organizations plugin (`deadbolt.plugins.organization.organization`): statement-based access
-  control (roles map to `resource -> actions` permissions, checked via `has-permission`), full
-  organization lifecycle (create/update/delete), member management (list/remove/update-role/leave
-  with a role hierarchy guard), invitation lifecycle (invite/accept/reject/cancel/list), an active
-  organization (`set-active`/`get-active`), and `get-full`.
-- Organizations: **configurable custom roles** via `access_control(roles=..., hierarchy=...)`
-  (Better Auth's access-control model) and **teams** (create/list/update/remove teams and team
-  members), bringing the plugin close to Better Auth's organization feature set.
-- SQLAlchemy 2.0 Core async adapter over Postgres/MySQL/SQLite, with dates stored as
-  ISO-8601 for identical timezone-aware round-trips across dialects.
+### Bug Fixes
+- Make date-range Where filtering portable across adapters
+- Mark example placeholder secret
+- Hash reset and magic-link tokens at rest
+
+### Build & Packaging
+- Update lockfile for aiosqlite
+- Add uv lockfile
+- Add pre-commit hooks and renovate config
+- Configure packaging with uv, hatchling, and extras
+
+### Continuous Integration
+- Fetch full history in release build for version detection
+- Add lint, type, test, and pypi release workflows
+
+### Documentation
+- Record passkeys plugin
+- Record JWT plugin
+- Record email-otp, api-keys, and admin plugins
+- Record account/session/verification endpoints
+- Record configurable roles and teams
+- Record expanded organizations plugin
+- Record organizations plugin in changelog
+- Record schema-generation CLI in changelog
+- Record TOTP 2FA and field encryption in changelog
+- Record hook system in changelog
+- Record social OAuth plugin in changelog
+- Record cleanup and audit logging
+- Update changelog and threat model for hardening pass
+- Add runnable FastAPI example app
+- Record plugin system and magic-link in changelog
+- Record flask wsgi mount in changelog
+- Record fastapi and sqlalchemy adapters in changelog
+- Record phase 1 core in changelog
+- Add ADRs for decision records and agnostic core
+- Add STRIDE threat model
+- Add architecture specification
+- Set language on contributing code block
+- Add security policy and contributor guidelines
+
+### Features
+- Add passkeys (WebAuthn) plugin with registration and authentication
+- Add JWT bearer-token plugin for stateless API access
+- Add admin plugin (roles, bans with sign-in gate, user management)
+- Add API keys plugin (create/list/revoke/verify)
+- Add passwordless email-OTP sign-in plugin
+- Add TOTP backup-code regeneration
+- Add OAuth link-social to link a provider to the current user
+- Add email verification, user/session/account management endpoints
+- Add session-management helpers and shared require_session
+- Add configurable access control and teams to organizations plugin
+- Expand organizations plugin with access control, invitation lifecycle, and active org
+- Add organizations plugin with role-based access control
+- Add schema-generation CLI (deadbolt generate)
+- Add TOTP two-factor plugin with sign-in challenge and backup codes
+- Add AEAD field encryption helper
+- Run before/after hooks in the router, mergeable from plugins
+- Add before/after hook types
+- Add social OAuth plugin with Google and GitHub providers
+- Add provider-account linking service helpers
+- Let endpoints set response headers and mounts propagate them
+- Emit redacting audit log per request
+- Add cleanup_expired for sessions and verifications
+- Enforce request body-size limit
+- Add absolute session lifetime cap and freshness helper
+- Add rate limiting with per-path rules and pluggable storage
+- Enforce trusted-origin CSRF check on state-changing requests
+- Add magic-link passwordless plugin
+- Add plugin system and merge plugin endpoints into Auth
+- Add Flask WSGI mount integration
+- Add sync bridge for serving WSGI from the async core
+- Implement SQLAlchemy Core async adapter
+- Add FastAPI/Starlette mount integration
+- Add request router and direct-call api, wire Auth
+- Add email/password endpoints and account service
+- Implement session manager with cookies and sliding refresh
+- Implement argon2 hashing, tokens, key derivation, cookie signing
+- Implement in-memory database adapter
+- Define core user, session, account, verification models
+- Add Auth engine skeleton and alias-first public API
+- Add database adapter protocols and query types
+- Add error types and normalized http contract
+
+### Refactor
+- Extract shared build_metadata from SQLAlchemy adapter
+- Use a comparator table in the memory adapter
+
+
