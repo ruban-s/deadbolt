@@ -19,6 +19,9 @@ All notable changes to this project are documented here. The format follows
 - Admin plugin: config-bootstrapped admins, roles, ban/unban with a sign-in ban gate (via hooks),
   list/create/remove users, and revoke-user-sessions.
 - JWT plugin: issue/verify short-lived HS256 tokens (HKDF-derived key) for stateless API access.
+- Passkeys (WebAuthn) plugin (`deadbolt.plugins.passkeys`): registration and authentication
+  ceremonies via py_webauthn, challenge storage, per-credential sign-count tracking, and
+  list/delete management.
 
 - Project scaffold: packaging, dev tooling, CI, and governance.
 - Architecture specification, STRIDE threat model, and initial ADRs.
