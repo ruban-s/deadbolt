@@ -1,0 +1,160 @@
+/* deadbolt — brand design system */
+
+:root {
+  --db-brand: #6d5cff;
+  --db-brand-light: #8b7bff;
+  --db-brand-dark: #5443e6;
+  --db-ink: #0b0d16;
+  --db-ink-2: #141830;
+  --db-ink-3: #241f52;
+}
+
+/* ---- Light scheme ---------------------------------------------------- */
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: var(--db-brand);
+  --md-primary-fg-color--light: var(--db-brand-light);
+  --md-primary-fg-color--dark: var(--db-brand-dark);
+  --md-accent-fg-color: var(--db-brand);
+  --md-typeset-a-color: var(--db-brand-dark);
+  --md-default-bg-color: #fbfbfe;
+}
+
+/* ---- Dark scheme ----------------------------------------------------- */
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: var(--db-brand);
+  --md-accent-fg-color: var(--db-brand-light);
+  --md-typeset-a-color: var(--db-brand-light);
+  --md-default-bg-color: #0d0f1a;
+  --md-code-bg-color: #12152400;
+  --md-code-bg-color: #141726;
+}
+
+/* ---- Premium dark header + tabs in BOTH schemes ---------------------- */
+.md-header,
+.md-tabs {
+  background: linear-gradient(100deg, var(--db-ink) 0%, var(--db-ink-2) 55%, var(--db-ink-3) 100%);
+  color: #eef0ff;
+}
+.md-header {
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06), 0 4px 24px rgba(9, 11, 22, 0.28);
+}
+.md-header__title,
+.md-tabs__link {
+  color: #eef0ff;
+}
+.md-tabs__link--active,
+.md-tabs__link:hover {
+  color: #fff;
+  opacity: 1;
+}
+.md-tabs__item--active {
+  border-bottom: 2px solid var(--db-brand-light);
+}
+.md-header .md-logo img {
+  height: 1.7rem;
+  width: 1.7rem;
+}
+/* Search pill */
+.md-search__form {
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+}
+.md-search__form:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+/* ---- Announcement bar ----------------------------------------------- */
+.md-banner {
+  background: var(--db-ink);
+  color: #d9dcff;
+  font-size: 0.72rem;
+}
+.md-banner a {
+  color: var(--db-brand-light);
+  font-weight: 600;
+}
+.md-banner code {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  padding: 0.1em 0.4em;
+}
+
+/* ---- Buttons --------------------------------------------------------- */
+.md-typeset .md-button {
+  border-radius: 10px;
+  font-weight: 600;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+.md-typeset .md-button--primary {
+  background: linear-gradient(120deg, var(--db-brand) 0%, var(--db-brand-dark) 100%);
+  border-color: transparent;
+  box-shadow: 0 6px 20px rgba(109, 92, 255, 0.35);
+}
+.md-typeset .md-button:hover {
+  transform: translateY(-2px);
+}
+
+/* ---- Hero ------------------------------------------------------------ */
+.db-hero {
+  text-align: center;
+  padding: 3.2rem 1rem 1.4rem;
+  margin: -0.6rem 0 1rem;
+  background: radial-gradient(60% 120% at 50% -10%, rgba(109, 92, 255, 0.16), transparent 70%);
+  border-radius: 18px;
+}
+.db-hero .db-hero__icon {
+  font-size: 3rem;
+  color: var(--db-brand);
+  line-height: 1;
+}
+.db-hero h1 {
+  font-size: 3.1rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin: 0.4rem 0 0.2rem;
+  background: linear-gradient(100deg, var(--db-brand-dark), var(--db-brand-light));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.db-hero p {
+  max-width: 40rem;
+  margin: 0.4rem auto 1.4rem;
+  font-size: 1.02rem;
+  color: var(--md-default-fg-color--light);
+}
+.db-hero .md-button {
+  margin: 0.25rem 0.3rem;
+}
+
+/* ---- Feature grid cards --------------------------------------------- */
+.md-typeset .grid.cards > ul > li,
+.md-typeset .grid > .card {
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 14px;
+  padding: 1.1rem 1.2rem;
+  transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
+}
+.md-typeset .grid.cards > ul > li:hover {
+  transform: translateY(-4px);
+  border-color: var(--db-brand);
+  box-shadow: 0 12px 30px rgba(109, 92, 255, 0.18);
+}
+.md-typeset .grid.cards .twemoji,
+.md-typeset .grid.cards svg {
+  color: var(--db-brand);
+}
+
+/* ---- Code blocks ----------------------------------------------------- */
+.md-typeset pre > code {
+  border-radius: 12px;
+}
+.md-typeset .highlight {
+  border-radius: 12px;
+}
+
+/* ---- Section headings ------------------------------------------------ */
+.md-typeset h2 {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}

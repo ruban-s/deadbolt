@@ -7,9 +7,14 @@ copyright: MIT © the deadbolt contributors
 
 theme:
   name: material
+  custom_dir: overrides
+  logo: assets/logo.svg
+  favicon: assets/logo.svg
   icon:
-    logo: material/lock
     repo: fontawesome/brands/github
+  font:
+    text: Inter
+    code: JetBrains Mono
   features:
     - navigation.tabs
     - navigation.tabs.sticky
@@ -67,6 +72,17 @@ plugins:
             show_root_heading: true
             show_source: false
             members_order: source
+
+extra_css:
+  - stylesheets/extra.css
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/ruban-s/deadbolt
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/deadbolt/
+  generator: false
 
 nav:
   - Home:
