@@ -154,7 +154,7 @@ async def test_members_list_and_update_role() -> None:
 
     members_req = db.AuthRequest(
         method="GET",
-        path="/organization/members",
+        path="/organization/list-members",
         query=MultiDict([("organization_id", org_id)]),
         cookies=owner,
     )
@@ -185,7 +185,7 @@ async def test_members_requires_org_id() -> None:
     auth = build_auth()
     owner = await signup(auth, "owner@b.com")
     resp = await auth.handle(
-        db.AuthRequest(method="GET", path="/organization/members", cookies=owner)
+        db.AuthRequest(method="GET", path="/organization/list-members", cookies=owner)
     )
     assert resp.status == 400
 
@@ -248,3 +248,180 @@ async def test_remove_member_permissions() -> None:
         )
     )
     assert removed.status == 200
+
+
+async def _member_setup(auth: db.Auth) -> tuple[dict[str, str], dict[str, str], str, str]:
+    owner = await signup(auth, "owner@b.com")
+    member = await signup(auth, "member@b.com")
+    org_id = await create_org(auth, owner)
+    invited = await auth.handle(
+        post("/organization/invite", {"organization_id": org_id, "email": "member@b.com"}, owner)
+    )
+    invitation_id = json.loads(invited.body)["invitation"]["id"]
+    accepted = await auth.handle(
+        post("/organization/accept-invitation", {"invitation_id": invitation_id}, member)
+    )
+    member_id = json.loads(accepted.body)["member"]["user_id"]
+    return owner, member, org_id, member_id
+
+
+async def test_has_permission() -> None:
+    auth = build_auth()
+    owner, member, org_id, _ = await _member_setup(auth)
+    allowed = await auth.handle(
+        post(
+            "/organization/has-permission",
+            {"organization_id": org_id, "permissions": {"organization": ["delete"]}},
+            owner,
+        )
+    )
+    assert json.loads(allowed.body)["allowed"] is True
+    denied = await auth.handle(
+        post(
+            "/organization/has-permission",
+            {"organization_id": org_id, "permissions": {"organization": ["delete"]}},
+            member,
+        )
+    )
+    assert json.loads(denied.body)["allowed"] is False
+
+
+async def test_update_and_delete_organization() -> None:
+    auth = build_auth()
+    owner, member, org_id, _ = await _member_setup(auth)
+
+    denied = await auth.handle(
+        post("/organization/update", {"organization_id": org_id, "name": "Nope"}, member)
+    )
+    assert denied.status == 403
+
+    updated = await auth.handle(
+        post("/organization/update", {"organization_id": org_id, "name": "Renamed"}, owner)
+    )
+    assert json.loads(updated.body)["organization"]["name"] == "Renamed"
+
+    deleted = await auth.handle(post("/organization/delete", {"organization_id": org_id}, owner))
+    assert deleted.status == 200
+    listed = await auth.handle(
+        db.AuthRequest(method="GET", path="/organization/list", cookies=owner)
+    )
+    assert json.loads(listed.body)["organizations"] == []
+
+
+async def test_leave_and_sole_owner_guard() -> None:
+    auth = build_auth()
+    owner, member, org_id, _ = await _member_setup(auth)
+
+    sole = await auth.handle(post("/organization/leave", {"organization_id": org_id}, owner))
+    assert sole.status == 400
+    assert json.loads(sole.body)["error"]["code"] == "sole_owner"
+
+    left = await auth.handle(post("/organization/leave", {"organization_id": org_id}, member))
+    assert left.status == 200
+
+
+async def test_reject_and_cancel_invitation() -> None:
+    auth = build_auth()
+    owner = await signup(auth, "owner@b.com")
+    invitee = await signup(auth, "invitee@b.com")
+    org_id = await create_org(auth, owner)
+
+    inv1 = json.loads(
+        (
+            await auth.handle(
+                post(
+                    "/organization/invite",
+                    {"organization_id": org_id, "email": "invitee@b.com"},
+                    owner,
+                )
+            )
+        ).body
+    )["invitation"]["id"]
+    rejected = await auth.handle(
+        post("/organization/reject-invitation", {"invitation_id": inv1}, invitee)
+    )
+    assert rejected.status == 200
+
+    inv2 = json.loads(
+        (
+            await auth.handle(
+                post(
+                    "/organization/invite",
+                    {"organization_id": org_id, "email": "invitee@b.com"},
+                    owner,
+                )
+            )
+        ).body
+    )["invitation"]["id"]
+    canceled = await auth.handle(
+        post("/organization/cancel-invitation", {"invitation_id": inv2}, owner)
+    )
+    assert canceled.status == 200
+
+    listed = db.AuthRequest(
+        method="GET",
+        path="/organization/list-invitations",
+        query=MultiDict([("organization_id", org_id)]),
+        cookies=owner,
+    )
+    assert json.loads((await auth.handle(listed)).body)["invitations"] == []
+
+
+async def test_active_organization() -> None:
+    auth = build_auth()
+    owner = await signup(auth, "owner@b.com")
+    org_id = await create_org(auth, owner)
+    set_resp = await auth.handle(
+        post("/organization/set-active", {"organization_id": org_id}, owner)
+    )
+    assert json.loads(set_resp.body)["active_organization_id"] == org_id
+
+    got = await auth.handle(
+        db.AuthRequest(method="GET", path="/organization/get-active", cookies=owner)
+    )
+    assert json.loads(got.body)["organization"]["id"] == org_id
+
+
+async def test_get_full_organization_uses_active() -> None:
+    auth = build_auth()
+    owner = await signup(auth, "owner@b.com")
+    org_id = await create_org(auth, owner)
+    await auth.handle(post("/organization/set-active", {"organization_id": org_id}, owner))
+    full = await auth.handle(
+        db.AuthRequest(method="GET", path="/organization/get-full", cookies=owner)
+    )
+    body = json.loads(full.body)
+    assert body["organization"]["id"] == org_id
+    assert len(body["members"]) == 1
+
+
+async def test_has_permission_requires_object() -> None:
+    auth = build_auth()
+    owner = await signup(auth, "owner@b.com")
+    org_id = await create_org(auth, owner)
+    resp = await auth.handle(
+        post(
+            "/organization/has-permission", {"organization_id": org_id, "permissions": "bad"}, owner
+        )
+    )
+    assert resp.status == 400
+
+
+async def test_update_org_slug_conflict() -> None:
+    auth = build_auth()
+    owner = await signup(auth, "owner@b.com")
+    first = await create_org(auth, owner, slug="acme")
+    await create_org(auth, owner, slug="beta")
+    resp = await auth.handle(
+        post("/organization/update", {"organization_id": first, "slug": "beta"}, owner)
+    )
+    assert resp.status == 409
+
+
+async def test_leave_when_not_member() -> None:
+    auth = build_auth()
+    owner = await signup(auth, "owner@b.com")
+    stranger = await signup(auth, "stranger@b.com")
+    org_id = await create_org(auth, owner)
+    resp = await auth.handle(post("/organization/leave", {"organization_id": org_id}, stranger))
+    assert resp.status == 404
