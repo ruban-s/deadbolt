@@ -5,9 +5,16 @@ All notable changes to this project are documented here. The format follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html), and entries are generated
 from [Conventional Commits](https://www.conventionalcommits.org/).
 
-## [Unreleased]
+## [0.2.0] - 2026-07-08
+
+### Build & Packaging
+- Add git-cliff for conventional-commit release notes
+
+### Continuous Integration
+- Create a GitHub Release with categorized notes on tag push
 
 ### Documentation
+- Generate categorized changelog and add RELEASING guide
 - Use absolute links in README so they render on PyPI
 - Record username and phone plugins
 - Rewrite README for the 0.1.0 release with badges and plugin list
