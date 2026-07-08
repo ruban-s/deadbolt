@@ -46,5 +46,8 @@ All notable changes to this project are documented here. The format follows
   challenge for enrolled users.
 - `deadbolt` CLI: `deadbolt generate --config module:attr --dialect {postgresql,mysql,sqlite}`
   emits SQL DDL for the full schema (core plus plugin tables) derived from your `Auth` config.
+- Organizations plugin (`deadbolt.plugins.organization.organization`): organization/member/
+  invitation tables, create/list/members/invite/accept/remove/update-role endpoints, and an
+  owner > admin > member role hierarchy with permission checks.
 - SQLAlchemy 2.0 Core async adapter over Postgres/MySQL/SQLite, with dates stored as
   ISO-8601 for identical timezone-aware round-trips across dialects.
