@@ -46,8 +46,10 @@ All notable changes to this project are documented here. The format follows
   challenge for enrolled users.
 - `deadbolt` CLI: `deadbolt generate --config module:attr --dialect {postgresql,mysql,sqlite}`
   emits SQL DDL for the full schema (core plus plugin tables) derived from your `Auth` config.
-- Organizations plugin (`deadbolt.plugins.organization.organization`): organization/member/
-  invitation tables, create/list/members/invite/accept/remove/update-role endpoints, and an
-  owner > admin > member role hierarchy with permission checks.
+- Organizations plugin (`deadbolt.plugins.organization.organization`): statement-based access
+  control (roles map to `resource -> actions` permissions, checked via `has-permission`), full
+  organization lifecycle (create/update/delete), member management (list/remove/update-role/leave
+  with a role hierarchy guard), invitation lifecycle (invite/accept/reject/cancel/list), an active
+  organization (`set-active`/`get-active`), and `get-full`. Teams are a planned follow-up.
 - SQLAlchemy 2.0 Core async adapter over Postgres/MySQL/SQLite, with dates stored as
   ISO-8601 for identical timezone-aware round-trips across dialects.
