@@ -49,6 +49,7 @@ class Auth:
         plugins: Sequence[Plugin] = (),
         rate_limit: RateLimit | None = None,
         rate_limit_store: RateLimitStore | None = None,
+        max_body_bytes: int = 1_048_576,
     ) -> None:
         if not secret or len(secret) < _MIN_SECRET_BYTES:
             raise ConfigError("Auth requires a secret of at least 32 bytes.")
@@ -59,6 +60,7 @@ class Auth:
         self.session = session or SessionConfig()
         self.cookie = cookie or CookieConfig()
         self.trusted_origins = tuple(trusted_origins)
+        self.max_body_bytes = max_body_bytes
         self.hasher: Hasher = hasher or Argon2Hasher()
         self.email_sender = email_sender
 

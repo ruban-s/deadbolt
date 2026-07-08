@@ -37,13 +37,10 @@ class Router:
         if endpoint is None:
             return self._error(APIError(404, "not_found", "No such endpoint."))
 
-        if not is_trusted_request(request, self._auth.trusted_origins):
-            return self._error(APIError(403, "untrusted_origin", "Request origin is not trusted."))
-
-        if not await self._auth.rate_limiter.check(request.path, request.client_ip):
-            return self._error(APIError(429, "rate_limited", "Too many requests."))
-
         try:
+            rejection = await self._preflight(request)
+            if rejection is not None:
+                return self._error(rejection)
             body = self._parse_body(request)
         except APIError as error:
             return self._error(error)
@@ -61,6 +58,15 @@ class Router:
             return self._error(error)
 
         return AuthResponse(status=result.status, body=_encode(result.data), cookies=result.cookies)
+
+    async def _preflight(self, request: AuthRequest) -> APIError | None:
+        if not is_trusted_request(request, self._auth.trusted_origins):
+            return APIError(403, "untrusted_origin", "Request origin is not trusted.")
+        if not await self._auth.rate_limiter.check(request.path, request.client_ip):
+            return APIError(429, "rate_limited", "Too many requests.")
+        if request.body is not None and len(request.body) > self._auth.max_body_bytes:
+            return APIError(413, "payload_too_large", "Request body is too large.")
+        return None
 
     @staticmethod
     def _parse_body(request: AuthRequest) -> dict[str, Any]:
