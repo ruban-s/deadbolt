@@ -90,6 +90,33 @@ async def test_revoke_and_revoke_all() -> None:
     assert await sm.validate(b) is None
 
 
+async def test_absolute_session_cap() -> None:
+    clock = Clock()
+    sm = SessionManager(
+        adapter=MemoryAdapter(),
+        signer=CookieSigner("s" * 32),
+        config=SessionConfig(max_lifetime=3 * 86400),
+        cookie=CookieConfig(),
+        now=clock,
+    )
+    token, _ = await sm.create("user-1")
+    clock.advance(days=1)
+    assert await sm.validate(token) is not None
+    clock.advance(days=1)
+    assert await sm.validate(token) is not None
+    clock.advance(days=1)
+    assert await sm.validate(token) is None
+
+
+async def test_is_fresh() -> None:
+    clock = Clock()
+    sm = make_manager(clock)
+    _, row = await sm.create("user-1")
+    assert sm.is_fresh(row) is True
+    clock.advance(days=2)
+    assert sm.is_fresh(row) is False
+
+
 async def test_cookie_roundtrip_and_tamper() -> None:
     sm = make_manager(Clock())
     assert sm.cookie_name == "__Host-session"

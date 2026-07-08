@@ -151,6 +151,20 @@ async def test_rate_limit_window_resets() -> None:
     assert await store.increment("k", window=60) == 1
 
 
+async def test_body_size_limit() -> None:
+    auth = db.Auth(
+        adapter=db.MemoryAdapter(),
+        secret="x" * 32,
+        email_and_password=db.EmailPassword(enabled=True),
+        hasher=fast_hasher(),
+        max_body_bytes=50,
+    )
+    oversized = db.AuthRequest(method="POST", path="/sign-in/email", body=b"x" * 100)
+    resp = await auth.handle(oversized)
+    assert resp.status == 413
+    assert json.loads(resp.body)["error"]["code"] == "payload_too_large"
+
+
 async def test_sign_in_hashes_even_for_unknown_user() -> None:
     hasher = CountingHasher()
     auth = db.Auth(
