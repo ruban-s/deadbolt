@@ -1,8 +1,9 @@
-"""In-memory adapter for tests and local development. Implemented in Phase 1."""
+"""In-memory adapter for tests and local development."""
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+import copy
+from typing import TYPE_CHECKING, Any
 
 from .types import AdapterConfig
 
@@ -12,19 +13,77 @@ if TYPE_CHECKING:
     from .types import Row, SortBy, TableSpec, Where
 
 
+def _matches(row: Row, condition: Where) -> bool:
+    actual = row.get(condition.field)
+    expected = condition.value
+    op = condition.operator
+    if op == "eq":
+        return bool(actual == expected)
+    if op == "ne":
+        return bool(actual != expected)
+    if op == "in":
+        return actual in expected
+    if actual is None:
+        return False
+    if op == "lt":
+        return bool(actual < expected)
+    if op == "lte":
+        return bool(actual <= expected)
+    if op == "gt":
+        return bool(actual > expected)
+    if op == "gte":
+        return bool(actual >= expected)
+    if op == "contains":
+        return expected in actual
+    if op == "starts_with":
+        return str(actual).startswith(str(expected))
+    if op == "ends_with":
+        return str(actual).endswith(str(expected))
+    raise ValueError(f"unsupported operator: {op}")
+
+
+def _row_matches(row: Row, where: Sequence[Where]) -> bool:
+    ands = [c for c in where if c.connector == "AND"]
+    ors = [c for c in where if c.connector == "OR"]
+    if not all(_matches(row, c) for c in ands):
+        return False
+    return not ors or any(_matches(row, c) for c in ors)
+
+
+def _project(row: Row, select: Sequence[str] | None) -> Row:
+    if select is None:
+        return copy.deepcopy(row)
+    return {k: copy.deepcopy(v) for k, v in row.items() if k in select}
+
+
 class MemoryAdapter:
     """A dict-backed :class:`~deadbolt.protocols.AsyncDatabaseAdapter`."""
 
     def __init__(self) -> None:
-        self.config = AdapterConfig(adapter_id="memory", adapter_name="Memory")
+        self.config = AdapterConfig(
+            adapter_id="memory",
+            adapter_name="Memory",
+            supports_json=True,
+            supports_dates=True,
+            supports_booleans=True,
+        )
+        self._tables: dict[str, list[Row]] = {}
+
+    def _rows(self, model: str) -> list[Row]:
+        return self._tables.setdefault(model, [])
 
     async def create(self, *, model: str, data: Row, select: Sequence[str] | None = None) -> Row:
-        raise NotImplementedError
+        stored = copy.deepcopy(data)
+        self._rows(model).append(stored)
+        return _project(stored, select)
 
     async def find_one(
         self, *, model: str, where: Sequence[Where], select: Sequence[str] | None = None
     ) -> Row | None:
-        raise NotImplementedError
+        for row in self._rows(model):
+            if _row_matches(row, where):
+                return _project(row, select)
+        return None
 
     async def find_many(
         self,
@@ -36,22 +95,53 @@ class MemoryAdapter:
         sort_by: SortBy | None = None,
         select: Sequence[str] | None = None,
     ) -> list[Row]:
-        raise NotImplementedError
+        rows = [r for r in self._rows(model) if _row_matches(r, where)]
+        if sort_by is not None:
+            rows.sort(
+                key=lambda r: _sort_key(r.get(sort_by.field)),
+                reverse=sort_by.direction == "desc",
+            )
+        if offset:
+            rows = rows[offset:]
+        if limit is not None:
+            rows = rows[:limit]
+        return [_project(r, select) for r in rows]
 
     async def update(self, *, model: str, where: Sequence[Where], update: Row) -> Row | None:
-        raise NotImplementedError
+        for row in self._rows(model):
+            if _row_matches(row, where):
+                row.update(copy.deepcopy(update))
+                return copy.deepcopy(row)
+        return None
 
     async def update_many(self, *, model: str, where: Sequence[Where], update: Row) -> int:
-        raise NotImplementedError
+        count = 0
+        for row in self._rows(model):
+            if _row_matches(row, where):
+                row.update(copy.deepcopy(update))
+                count += 1
+        return count
 
     async def delete(self, *, model: str, where: Sequence[Where]) -> None:
-        raise NotImplementedError
+        rows = self._rows(model)
+        for i, row in enumerate(rows):
+            if _row_matches(row, where):
+                del rows[i]
+                return
 
     async def delete_many(self, *, model: str, where: Sequence[Where]) -> int:
-        raise NotImplementedError
+        rows = self._rows(model)
+        kept = [r for r in rows if not _row_matches(r, where)]
+        removed = len(rows) - len(kept)
+        self._tables[model] = kept
+        return removed
 
     async def count(self, *, model: str, where: Sequence[Where] = ()) -> int:
-        raise NotImplementedError
+        return sum(1 for r in self._rows(model) if _row_matches(r, where))
 
     async def create_schema(self, *, tables: Sequence[TableSpec], file: str | None = None) -> str:
-        raise NotImplementedError
+        return ""
+
+
+def _sort_key(value: Any) -> tuple[int, Any]:
+    return (0, value) if value is not None else (-1, "")
