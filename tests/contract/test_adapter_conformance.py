@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
 
 from deadbolt.db import MemoryAdapter, SortBy, Where
-from deadbolt.protocols import AsyncDatabaseAdapter
+
+if TYPE_CHECKING:
+    from deadbolt.protocols import AsyncDatabaseAdapter
 
 pytestmark = pytest.mark.anyio
 
@@ -56,9 +60,7 @@ async def test_operators(adapter: AsyncDatabaseAdapter) -> None:
 
 async def test_sort_limit_offset(adapter: AsyncDatabaseAdapter) -> None:
     await _seed(adapter)
-    page = await adapter.find_many(
-        model="user", sort_by=SortBy("n", "desc"), limit=2, offset=1
-    )
+    page = await adapter.find_many(model="user", sort_by=SortBy("n", "desc"), limit=2, offset=1)
     assert [r["id"] for r in page] == ["1", "0"]
 
 
