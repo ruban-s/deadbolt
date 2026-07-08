@@ -36,7 +36,7 @@ deadbolt = "deadbolt.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/ruban-s/deadbolt"
-Documentation = "https://deadbolt.readthedocs.io"
+Documentation = "https://github.com/ruban-s/deadbolt/tree/main/docs"
 Source = "https://github.com/ruban-s/deadbolt"
 Issues = "https://github.com/ruban-s/deadbolt/issues"
 Changelog = "https://github.com/ruban-s/deadbolt/blob/main/CHANGELOG.md"
