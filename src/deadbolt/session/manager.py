@@ -96,6 +96,27 @@ class SessionManager:
     async def revoke_all(self, user_id: str) -> int:
         return await self._adapter.delete_many(model="session", where=[Where("user_id", user_id)])
 
+    async def list_for(self, user_id: str) -> list[Row]:
+        return await self._adapter.find_many(model="session", where=[Where("user_id", user_id)])
+
+    async def revoke_by_id(self, session_id: str, user_id: str) -> bool:
+        row = await self._adapter.find_one(
+            model="session", where=[Where("id", session_id), Where("user_id", user_id)]
+        )
+        if row is None:
+            return False
+        await self._delete(row["token"])
+        return True
+
+    async def revoke_others(self, user_id: str, keep_token: str) -> int:
+        keep_hash = hash_token(keep_token)
+        revoked = 0
+        for row in await self.list_for(user_id):
+            if row["token"] != keep_hash:
+                await self._delete(row["token"])
+                revoked += 1
+        return revoked
+
     async def _delete(self, token_hash: str) -> None:
         await self._adapter.delete(model="session", where=[Where("token", token_hash)])
 

@@ -2,21 +2,42 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from .._util import new_id, utcnow
 from ..db.types import Row, Where
+from ..errors import APIError
 
 if TYPE_CHECKING:
+    from ..core.auth import Auth
+    from ..endpoints.context import EndpointRequest
     from ..protocols import AsyncDatabaseAdapter
 
 CREDENTIAL_PROVIDER = "credential"
+
+
+def require_str(body: dict[str, Any], key: str) -> str:
+    value = body.get(key)
+    if not isinstance(value, str) or not value:
+        raise APIError(400, "invalid_request", f"Missing or invalid field: {key}.")
+    return value
+
 
 _PUBLIC_USER_FIELDS = ("id", "email", "email_verified", "name", "image", "created_at", "updated_at")
 
 
 def public_user(user: Row) -> Row:
     return {k: user[k] for k in _PUBLIC_USER_FIELDS if k in user}
+
+
+async def require_session(auth: Auth, req: EndpointRequest) -> tuple[Row, Row]:
+    """Return ``(session, user)`` for the request, or raise 401."""
+    token = auth.sessions.read_token(req.cookies)
+    session = await auth.sessions.validate(token) if token else None
+    user = await find_user_by_id(auth.adapter, session["user_id"]) if session else None
+    if session is None or user is None:
+        raise APIError(401, "unauthorized", "A valid session is required.")
+    return session, user
 
 
 async def find_user_by_email(adapter: AsyncDatabaseAdapter, email: str) -> Row | None:
