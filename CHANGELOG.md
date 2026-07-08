@@ -12,3 +12,7 @@ All notable changes to this project are documented here. The format follows
 - Architecture specification, STRIDE threat model, and initial ADRs.
 - Package skeleton with the alias-first public API, the `AuthRequest`/`AuthResponse`
   contract, database adapter Protocols, and configuration types.
+- Core engine: in-memory database adapter, Argon2id password hashing, opaque
+  DB-backed sessions with signed cookies and sliding refresh, and HKDF key derivation.
+- Email/password endpoints (sign-up, sign-in, sign-out, get-session, change-password,
+  password reset) served over one `handle()` and callable directly via `auth.api`.
