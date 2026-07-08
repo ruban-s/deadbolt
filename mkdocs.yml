@@ -1,0 +1,101 @@
+site_name: deadbolt
+site_description: A framework-agnostic, batteries-included authentication library for Python.
+site_url: https://deadbolt.readthedocs.io
+repo_url: https://github.com/ruban-s/deadbolt
+repo_name: ruban-s/deadbolt
+copyright: MIT © the deadbolt contributors
+
+theme:
+  name: material
+  icon:
+    logo: material/lock
+    repo: fontawesome/brands/github
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.top
+    - navigation.tracking
+    - navigation.instant
+    - navigation.indexes
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - search.suggest
+    - search.highlight
+    - toc.follow
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - pymdownx.details
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            show_root_heading: true
+            show_source: false
+            members_order: source
+
+nav:
+  - Home:
+      - deadbolt: index.md
+      - Getting started: getting-started.md
+  - Learn:
+      - Concepts:
+          - Architecture: concepts/architecture.md
+          - Sessions: concepts/sessions.md
+          - Database adapters: concepts/adapters.md
+          - Plugins: concepts/plugins.md
+          - Hooks: concepts/hooks.md
+      - Core authentication: core-auth.md
+      - Framework integration:
+          - FastAPI / Starlette: integrations/fastapi.md
+          - Flask: integrations/flask.md
+  - Plugins:
+      - Username: plugins/username.md
+      - Magic link: plugins/magic-link.md
+      - Email OTP: plugins/email-otp.md
+      - Phone OTP: plugins/phone.md
+      - Social OAuth: plugins/oauth.md
+      - Passkeys (WebAuthn): plugins/passkeys.md
+      - TOTP 2FA: plugins/totp.md
+      - Organizations: plugins/organization.md
+      - API keys: plugins/api-keys.md
+      - Admin: plugins/admin.md
+      - JWT: plugins/jwt.md
+  - Security: security.md
+  - Reference:
+      - API reference: reference.md
+      - CLI: cli.md
