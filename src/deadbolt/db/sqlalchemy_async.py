@@ -48,6 +48,24 @@ _COLUMN_TYPES = {
 }
 
 
+def build_metadata(schema: Sequence[TableSpec]) -> MetaData:
+    """Build SQLAlchemy ``MetaData`` from table specs; shared by the adapter and CLI."""
+    metadata = MetaData()
+    for spec in schema:
+        columns: list[Column[Any]] = [
+            Column(
+                field.field_name or name,
+                _COLUMN_TYPES[field.type],
+                primary_key=name == "id",
+                unique=field.unique and name != "id",
+                nullable=not field.required,
+            )
+            for name, field in spec.fields.items()
+        ]
+        Table(spec.model, metadata, *columns)
+    return metadata
+
+
 class SQLAlchemyAdapter:
     """A SQLAlchemy Core-backed async adapter over Postgres/MySQL/SQLite.
 
@@ -64,25 +82,12 @@ class SQLAlchemyAdapter:
             supports_booleans=True,
         )
         self._engine = engine
-        self._metadata = MetaData()
-        self._tables = {spec.model: self._build_table(spec) for spec in schema}
+        self._metadata = build_metadata(schema)
+        self._tables = {spec.model: self._metadata.tables[spec.model] for spec in schema}
         self._date_fields = {
             spec.model: {name for name, field in spec.fields.items() if field.type == "date"}
             for spec in schema
         }
-
-    def _build_table(self, spec: TableSpec) -> Table:
-        columns: list[Column[Any]] = [
-            Column(
-                field.field_name or name,
-                _COLUMN_TYPES[field.type],
-                primary_key=name == "id",
-                unique=field.unique and name != "id",
-                nullable=not field.required,
-            )
-            for name, field in spec.fields.items()
-        ]
-        return Table(spec.model, self._metadata, *columns)
 
     def _table(self, model: str) -> Table:
         return self._tables[model]
