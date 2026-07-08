@@ -79,3 +79,10 @@ class EmailSender(Protocol):
     """Delivers verification and password-reset messages."""
 
     async def send(self, *, to: str, subject: str, body: str) -> None: ...
+
+
+@runtime_checkable
+class SmsSender(Protocol):
+    """Delivers SMS one-time codes (used by the phone-number plugin)."""
+
+    async def send_sms(self, *, to: str, body: str) -> None: ...

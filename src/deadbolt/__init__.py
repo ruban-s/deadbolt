@@ -26,6 +26,7 @@ from .protocols import (
     EmailSender,
     Hasher,
     SessionStore,
+    SmsSender,
 )
 from .ratelimit import RateLimit, RateLimitRule, RateLimitStore
 
@@ -59,6 +60,7 @@ __all__ = [
     "SQLAlchemyAdapter",
     "SessionConfig",
     "SessionStore",
+    "SmsSender",
     "SortBy",
     "TableSpec",
     "Where",
