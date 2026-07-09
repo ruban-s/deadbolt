@@ -117,6 +117,7 @@ nav:
       - Email OTP: plugins/email-otp.md
       - Phone OTP: plugins/phone.md
       - Social OAuth: plugins/oauth.md
+      - OIDC provider: plugins/oidc-provider.md
       - Passkeys (WebAuthn): plugins/passkeys.md
       - Sign-In with Ethereum: plugins/siwe.md
       - TOTP 2FA: plugins/totp.md

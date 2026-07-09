@@ -83,6 +83,7 @@ auth = db.Auth(
 | Email OTP | `deadbolt.plugins.email_otp` | Passwordless email codes |
 | Phone OTP | `deadbolt.plugins.phone` | Passwordless SMS codes |
 | Social OAuth | `deadbolt.plugins.oauth` | Google, GitHub, or any OAuth2/OIDC provider |
+| OIDC provider | `deadbolt.plugins.oidc_provider` | Act as an identity provider (auth-code + PKCE, id_token) |
 | Passkeys | `deadbolt.plugins.passkeys` | WebAuthn registration + authentication |
 | Sign-In with Ethereum | `deadbolt.plugins.siwe` | Wallet login via EIP-4361 |
 | TOTP 2FA | `deadbolt.plugins.totp` | Authenticator apps + backup codes |
