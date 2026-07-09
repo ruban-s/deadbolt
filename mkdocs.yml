@@ -107,6 +107,7 @@ nav:
           - Flask: integrations/flask.md
           - Any framework (ASGI / WSGI): integrations/generic.md
   - Plugins:
+      - Bearer token: plugins/bearer.md
       - Username: plugins/username.md
       - Magic link: plugins/magic-link.md
       - Email OTP: plugins/email-otp.md

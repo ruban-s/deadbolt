@@ -73,6 +73,7 @@ auth = db.Auth(
 
 | Plugin | Import | What it adds |
 |---|---|---|
+| Bearer token | `deadbolt.plugins.bearer` | Authenticate with an `Authorization` header (revocable session) |
 | Username | `deadbolt.plugins.username` | Sign in with a username |
 | Magic link | `deadbolt.plugins.magic_link` | Passwordless email links |
 | Email OTP | `deadbolt.plugins.email_otp` | Passwordless email codes |
