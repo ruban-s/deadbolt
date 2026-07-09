@@ -6,6 +6,7 @@ import json
 import logging
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
+from urllib.parse import parse_qsl
 
 from .._csrf import is_trusted_request
 from ..endpoints import EndpointRequest
@@ -107,6 +108,9 @@ class Router:
     def _parse_body(request: AuthRequest) -> dict[str, Any]:
         if request.method == "GET" or not request.body:
             return {}
+        content_type = request.headers.get("content-type") or ""
+        if "application/x-www-form-urlencoded" in content_type:
+            return dict(parse_qsl(request.body.decode("utf-8", "replace")))
         try:
             parsed = json.loads(request.body)
         except json.JSONDecodeError as error:
