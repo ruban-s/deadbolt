@@ -5,9 +5,28 @@ All notable changes to this project are documented here. The format follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html), and entries are generated
 from [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [0.4.0] - 2026-07-09
+
+### Bug Fixes
+- Make full repo pass ruff and mypy gates
+
+### Continuous Integration
+- Use setup-uv@v7 (v8 major tag does not exist)
+- Bump GitHub Actions to Node 24 majors
+
+### Documentation
+- Document the OIDC provider plugin
+- Document the SIWE plugin
+
+### Features
+- Add OIDC provider plugin (authorization code + PKCE)
+- Parse form-encoded request bodies
+- Add Sign-In with Ethereum (SIWE) plugin
+
 ## [0.3.0] - 2026-07-09
 
 ### Documentation
+- Changelog for v0.3.0
 - Document the device authorization plugin
 - Document anonymous, captcha, multi-session, and JWKS
 - Document one-time-token and haveibeenpwned plugins
