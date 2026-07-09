@@ -5,12 +5,34 @@ All notable changes to this project are documented here. The format follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html), and entries are generated
 from [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [0.3.0] - 2026-07-09
+
+### Documentation
+- Document the device authorization plugin
+- Document anonymous, captcha, multi-session, and JWKS
+- Document one-time-token and haveibeenpwned plugins
+- Document the bearer token plugin
+- Document the generic ASGI/WSGI mounts
+- Point Documentation link and README badge at Read the Docs
+
+### Features
+- Add device authorization grant plugin (RFC 8628)
+- Add EdDSA signing and JWKS endpoint to jwt plugin
+- Add multi-session plugin for multiple accounts per browser
+- Add captcha plugin for Turnstile/hCaptcha/reCAPTCHA
+- Add anonymous guest-session plugin
+- Add haveibeenpwned plugin to reject breached passwords
+- Add one-time-token plugin for session handoff
+- Add bearer token plugin for header-based auth
+- Add generic ASGI and WSGI mounts for any framework
+
 ## [0.2.1] - 2026-07-08
 
 ### Bug Fixes
 - Point Documentation URL at repo docs instead of nonexistent readthedocs site
 
 ### Documentation
+- Changelog for v0.2.1
 - Scheme-aware header, announcement copy button, dynamic version
 - Brand redesign with custom logo, palette, and hero landing
 - Add full MkDocs Material documentation site
