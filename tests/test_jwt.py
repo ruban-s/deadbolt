@@ -85,3 +85,58 @@ async def test_token_from_other_secret_rejected() -> None:
     )
     resp = await other.handle(post("/token/verify", {"token": token}))
     assert resp.status == 401
+
+
+def build_eddsa_auth() -> db.Auth:
+    return db.Auth(
+        adapter=db.MemoryAdapter(),
+        secret="x" * 32,
+        email_and_password=db.EmailPassword(enabled=True),
+        hasher=fast_hasher(),
+        plugins=[jwt(algorithm="EdDSA")],
+    )
+
+
+async def test_eddsa_issue_and_verify() -> None:
+    auth = build_eddsa_auth()
+    cookies = await signup(auth)
+    issued = await auth.handle(db.AuthRequest(method="GET", path="/token", cookies=cookies))
+    token = json.loads(issued.body)["token"]
+
+    verified = await auth.handle(post("/token/verify", {"token": token}))
+    assert verified.status == 200
+    assert json.loads(verified.body)["claims"]["email"] == "a@b.com"
+
+
+async def test_eddsa_publishes_jwks() -> None:
+    auth = build_eddsa_auth()
+    resp = await auth.handle(db.AuthRequest(method="GET", path="/jwks"))
+    assert resp.status == 200
+    key = json.loads(resp.body)["keys"][0]
+    assert key["kty"] == "OKP"
+    assert key["crv"] == "Ed25519"
+    assert key["alg"] == "EdDSA"
+    assert key["x"] and key["kid"]
+
+
+async def test_jwks_verifies_token_via_public_key() -> None:
+    # An independent verifier reconstructs the public key from JWKS and validates
+    # the token — no shared secret involved.
+    auth = build_eddsa_auth()
+    cookies = await signup(auth)
+    token = json.loads(
+        (await auth.handle(db.AuthRequest(method="GET", path="/token", cookies=cookies))).body
+    )["token"]
+    jwks = json.loads((await auth.handle(db.AuthRequest(method="GET", path="/jwks"))).body)
+
+    import jwt as pyjwt  # noqa: PLC0415
+    from jwt.algorithms import OKPAlgorithm  # noqa: PLC0415
+
+    key = OKPAlgorithm.from_jwk(json.dumps(jwks["keys"][0]))
+    claims = pyjwt.decode(token, key, algorithms=["EdDSA"], issuer="deadbolt")
+    assert claims["email"] == "a@b.com"
+
+
+async def test_invalid_algorithm_raises() -> None:
+    with pytest.raises(ValueError, match="algorithm must be one of"):
+        jwt(algorithm="RS256")
