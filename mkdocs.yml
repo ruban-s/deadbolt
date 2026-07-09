@@ -105,6 +105,7 @@ nav:
       - Framework integration:
           - FastAPI / Starlette: integrations/fastapi.md
           - Flask: integrations/flask.md
+          - Any framework (ASGI / WSGI): integrations/generic.md
   - Plugins:
       - Username: plugins/username.md
       - Magic link: plugins/magic-link.md
