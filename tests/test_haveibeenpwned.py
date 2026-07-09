@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 
+import httpx
 import pytest
 
 import deadbolt as db
@@ -64,6 +65,43 @@ async def test_padding_entries_with_zero_count_not_treated_as_breach() -> None:
         post("/sign-up/email", {"email": "a@b.com", "password": "a-long-unique-passphrase"})
     )
     assert resp.status == 200
+
+
+async def test_default_fetch_uses_hibp_range_api(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Exercise the real httpx-backed default fetch with a mocked client.
+    password = "hunter2pw"
+    suffix = hashlib.sha1(password.encode()).hexdigest().upper()[5:]  # noqa: S324
+
+    class FakeResponse:
+        text = f"{suffix}:9\r\nFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF:1"
+
+        def raise_for_status(self) -> None:
+            return None
+
+    class FakeClient:
+        def __init__(self, **_: object) -> None:
+            pass
+
+        async def __aenter__(self) -> FakeClient:
+            return self
+
+        async def __aexit__(self, *_: object) -> bool:
+            return False
+
+        async def get(self, url: str, headers: dict[str, str] | None = None) -> FakeResponse:
+            return FakeResponse()
+
+    monkeypatch.setattr(httpx, "AsyncClient", FakeClient)
+    auth = db.Auth(
+        adapter=db.MemoryAdapter(),
+        secret="x" * 32,
+        email_and_password=db.EmailPassword(enabled=True),
+        hasher=fast_hasher(),
+        plugins=[haveibeenpwned()],  # default fetch
+    )
+    resp = await auth.handle(post("/sign-up/email", {"email": "a@b.com", "password": password}))
+    assert resp.status == 400
+    assert json.loads(resp.body)["error"]["code"] == "pwned_password"
 
 
 async def test_breached_password_rejected_on_change_password() -> None:

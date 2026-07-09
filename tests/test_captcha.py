@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 
+import httpx
 import pytest
 
 import deadbolt as db
@@ -63,3 +64,37 @@ async def test_missing_captcha_rejected() -> None:
 async def test_unknown_provider_raises() -> None:
     with pytest.raises(ValueError, match="Unknown captcha provider"):
         captcha(provider="nope")
+
+
+async def test_default_http_verifier(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Exercise the real httpx-backed provider verification with a mocked client.
+    class FakeResponse:
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self) -> dict[str, bool]:
+            return {"success": True}
+
+    class FakeClient:
+        def __init__(self, **_: object) -> None:
+            pass
+
+        async def __aenter__(self) -> FakeClient:
+            return self
+
+        async def __aexit__(self, *_: object) -> bool:
+            return False
+
+        async def post(self, url: str, data: dict[str, str] | None = None) -> FakeResponse:
+            return FakeResponse()
+
+    monkeypatch.setattr(httpx, "AsyncClient", FakeClient)
+    auth = db.Auth(
+        adapter=db.MemoryAdapter(),
+        secret="x" * 32,
+        email_and_password=db.EmailPassword(enabled=True),
+        hasher=fast_hasher(),
+        plugins=[captcha(provider="turnstile", secret_key="secret")],  # default verifier
+    )
+    resp = await auth.handle(signup("any-token"))
+    assert resp.status == 200
