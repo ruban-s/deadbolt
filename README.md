@@ -74,6 +74,9 @@ auth = db.Auth(
 | Plugin | Import | What it adds |
 |---|---|---|
 | Bearer token | `deadbolt.plugins.bearer` | Authenticate with an `Authorization` header (revocable session) |
+| Anonymous | `deadbolt.plugins.anonymous` | Guest sessions with no credentials |
+| Multi-session | `deadbolt.plugins.multi_session` | Several signed-in accounts in one browser |
+| CAPTCHA | `deadbolt.plugins.captcha` | Turnstile / hCaptcha / reCAPTCHA on sign-in and sign-up |
 | Username | `deadbolt.plugins.username` | Sign in with a username |
 | Magic link | `deadbolt.plugins.magic_link` | Passwordless email links |
 | Email OTP | `deadbolt.plugins.email_otp` | Passwordless email codes |

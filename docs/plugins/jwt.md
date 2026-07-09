@@ -26,6 +26,24 @@ auth = db.Auth(
 | --- | --- | --- | --- |
 | `expires_in` | integer | `900` | Token lifetime in seconds (`exp` claim). Default 15 minutes. |
 | `issuer` | string | `"deadbolt"` | `iss` claim written on issue and required on verify. |
+| `algorithm` | string | `"HS256"` | Signing algorithm: `HS256` (symmetric) or `EdDSA` (asymmetric; adds `GET /jwks`). |
+
+### Symmetric vs. asymmetric
+
+- **`HS256` (default)** — one HMAC key, derived from the master secret. Simple, but any party that
+  verifies a token needs the shared secret. Best when your own services verify tokens.
+- **`EdDSA`** — Ed25519 keypair, also derived from the master secret. The private key never leaves
+  the server; verifiers fetch the **public** key from the `/jwks` endpoint and validate tokens with no
+  shared secret. Best when third parties or separate services verify your tokens.
+
+#### `GET /jwks` *(EdDSA mode only)*
+
+Returns the public key as a [JWK Set](https://datatracker.ietf.org/doc/html/rfc7517), the standard a
+resource server consumes to verify tokens:
+
+```json
+{ "keys": [ { "kty": "OKP", "crv": "Ed25519", "x": "...", "use": "sig", "alg": "EdDSA", "kid": "..." } ] }
+```
 
 ## API
 
