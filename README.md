@@ -85,6 +85,8 @@ auth = db.Auth(
 | API keys | `deadbolt.plugins.api_keys` | Machine-to-machine keys |
 | Admin | `deadbolt.plugins.admin` | Roles, bans, user management |
 | JWT | `deadbolt.plugins.jwt` | Stateless bearer tokens |
+| One-time token | `deadbolt.plugins.one_time_token` | Single-use token to hand off a session |
+| Have I Been Pwned | `deadbolt.plugins.haveibeenpwned` | Reject breached passwords |
 
 ## CLI
 
