@@ -47,6 +47,7 @@ redis      = ["redis>=5.0"]
 jwt        = ["pyjwt[crypto]>=2.13"]
 jose       = ["joserfc>=1.7"]
 oauth      = ["httpx>=0.27"]
+siwe       = ["eth-account>=0.11"]
 passkeys   = ["webauthn>=2.0"]
 totp       = ["pyotp>=2.9"]
 ratelimit  = ["limits>=3.13"]
@@ -57,7 +58,7 @@ litestar   = ["litestar>=2.12"]
 flask      = ["flask>=3.0"]
 django     = ["django>=4.2"]
 all = [
-    "deadbolt[sqlalchemy,redis,jwt,jose,oauth,passkeys,totp,ratelimit,email,fastapi,litestar,flask,django]",
+    "deadbolt[sqlalchemy,redis,jwt,jose,oauth,siwe,passkeys,totp,ratelimit,email,fastapi,litestar,flask,django]",
 ]
 
 [dependency-groups]
