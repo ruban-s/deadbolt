@@ -57,9 +57,10 @@ def test_unknown_db_attribute() -> None:
         db.db.DoesNotExist  # noqa: B018
 
 
-def test_mount_app_stubs() -> None:
+def test_mount_apps_are_callable() -> None:
     auth = db.Auth(adapter=db.MemoryAdapter(), secret="x" * 32)
-    with pytest.raises(NotImplementedError):
-        auth.asgi_app()
-    with pytest.raises(NotImplementedError):
-        auth.wsgi_app()
+    try:
+        assert callable(auth.asgi_app())
+        assert callable(auth.wsgi_app())
+    finally:
+        auth.close()

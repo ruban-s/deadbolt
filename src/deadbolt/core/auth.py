@@ -10,6 +10,8 @@ from ..crypto import Argon2Hasher, CookieSigner
 from ..db.types import Where
 from ..endpoints import ENDPOINTS, Registry
 from ..errors import ConfigError
+from ..integrations.asgi import create_asgi_app
+from ..integrations.wsgi import create_wsgi_app
 from ..models import CORE_TABLES
 from ..ratelimit import RateLimit, RateLimiter
 from ..session import SessionManager
@@ -22,6 +24,8 @@ if TYPE_CHECKING:
 
     from ..hooks import Hook, Hooks
     from ..http import AuthRequest, AuthResponse
+    from ..integrations.asgi import ASGIApp
+    from ..integrations.wsgi import WSGIApp
     from ..plugins import Plugin
     from ..protocols import AsyncDatabaseAdapter, EmailSender, Hasher
     from ..ratelimit import RateLimitStore
@@ -119,10 +123,10 @@ class Auth:
         """Namespace of endpoints callable directly, without HTTP."""
         return self._api
 
-    def asgi_app(self) -> object:
-        """Return a mountable ASGI application."""
-        raise NotImplementedError("ASGI mount lands in Phase 2.")
+    def asgi_app(self) -> ASGIApp:
+        """Return a mountable ASGI application; mount it at ``base_path``."""
+        return create_asgi_app(self)
 
-    def wsgi_app(self) -> object:
-        """Return a mountable WSGI application."""
-        raise NotImplementedError("WSGI mount lands in Phase 2.")
+    def wsgi_app(self) -> WSGIApp:
+        """Return a mountable WSGI application; mount it at ``base_path``."""
+        return create_wsgi_app(self)
