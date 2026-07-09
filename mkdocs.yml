@@ -118,6 +118,7 @@ nav:
       - Phone OTP: plugins/phone.md
       - Social OAuth: plugins/oauth.md
       - Passkeys (WebAuthn): plugins/passkeys.md
+      - Sign-In with Ethereum: plugins/siwe.md
       - TOTP 2FA: plugins/totp.md
       - Organizations: plugins/organization.md
       - API keys: plugins/api-keys.md

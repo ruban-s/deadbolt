@@ -84,6 +84,7 @@ auth = db.Auth(
 | Phone OTP | `deadbolt.plugins.phone` | Passwordless SMS codes |
 | Social OAuth | `deadbolt.plugins.oauth` | Google, GitHub, or any OAuth2/OIDC provider |
 | Passkeys | `deadbolt.plugins.passkeys` | WebAuthn registration + authentication |
+| Sign-In with Ethereum | `deadbolt.plugins.siwe` | Wallet login via EIP-4361 |
 | TOTP 2FA | `deadbolt.plugins.totp` | Authenticator apps + backup codes |
 | Organizations | `deadbolt.plugins.organization` | Multi-tenancy, RBAC, invitations, teams |
 | API keys | `deadbolt.plugins.api_keys` | Machine-to-machine keys |
