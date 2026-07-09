@@ -111,6 +111,7 @@ nav:
       - Anonymous: plugins/anonymous.md
       - Multi-session: plugins/multi-session.md
       - CAPTCHA: plugins/captcha.md
+      - Device authorization: plugins/device-authorization.md
       - Username: plugins/username.md
       - Magic link: plugins/magic-link.md
       - Email OTP: plugins/email-otp.md
