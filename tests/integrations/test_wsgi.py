@@ -32,7 +32,9 @@ def wsgi_client() -> Iterator[Client]:
 
 
 def _body(response: object) -> dict[str, object]:
-    return json.loads(response.get_data(as_text=True))  # type: ignore[attr-defined]
+    data = response.get_data(as_text=True)  # type: ignore[attr-defined]
+    parsed: dict[str, object] = json.loads(data)
+    return parsed
 
 
 def test_full_flow_over_generic_wsgi(wsgi_client: Client) -> None:

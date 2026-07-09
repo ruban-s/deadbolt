@@ -77,5 +77,5 @@ async def test_lifespan_startup_and_shutdown() -> None:
     async def send(message: dict[str, str]) -> None:
         sent.append(message["type"])
 
-    await app({"type": "lifespan"}, receive, send)
+    await app({"type": "lifespan"}, receive, send)  # type: ignore[arg-type]
     assert sent == ["lifespan.startup.complete", "lifespan.shutdown.complete"]

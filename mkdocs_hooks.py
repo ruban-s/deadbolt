@@ -19,7 +19,7 @@ _RELEASE = re.compile(r"\d+\.\d+\.\d+")
 def _latest_tag() -> str | None:
     try:
         out = subprocess.run(
-            ["git", "describe", "--tags", "--abbrev=0"],
+            ["git", "describe", "--tags", "--abbrev=0"],  # noqa: S607 — git resolved from PATH
             capture_output=True,
             text=True,
             check=True,

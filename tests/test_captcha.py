@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from typing import TYPE_CHECKING
 
 import httpx
 import pytest
@@ -10,10 +11,13 @@ from _helpers import fast_hasher
 from deadbolt.http import MultiDict
 from deadbolt.plugins.captcha import captcha
 
+if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable
+
 pytestmark = pytest.mark.anyio
 
 
-def build_auth(verify) -> db.Auth:
+def build_auth(verify: Callable[[str], Awaitable[bool]]) -> db.Auth:
     return db.Auth(
         adapter=db.MemoryAdapter(),
         secret="x" * 32,

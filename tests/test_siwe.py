@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 import json
+from typing import TYPE_CHECKING
 
 import pytest
 
 import deadbolt as db
 from _helpers import fast_hasher
 from deadbolt.plugins.siwe import siwe
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 pytestmark = pytest.mark.anyio
 
@@ -15,7 +19,7 @@ ADDRESS = "0x" + "a" * 40
 OTHER = "0x" + "b" * 40
 
 
-def stub(recovered: str | None):
+def stub(recovered: str | None) -> Callable[[str, str], str | None]:
     """A verifier that returns ``recovered`` for a 'good' signature, else None."""
 
     def verify(message: str, signature: str) -> str | None:
@@ -24,7 +28,7 @@ def stub(recovered: str | None):
     return verify
 
 
-def build_auth(verify) -> db.Auth:
+def build_auth(verify: Callable[[str, str], str | None] | None) -> db.Auth:
     return db.Auth(
         adapter=db.MemoryAdapter(),
         secret="x" * 32,
@@ -33,7 +37,9 @@ def build_auth(verify) -> db.Auth:
     )
 
 
-def message(*, nonce: str, address: str = ADDRESS, domain: str = DOMAIN, expiration=None) -> str:
+def message(
+    *, nonce: str, address: str = ADDRESS, domain: str = DOMAIN, expiration: str | None = None
+) -> str:
     lines = [
         f"{domain} wants you to sign in with your Ethereum account:",
         address,
@@ -53,7 +59,7 @@ def message(*, nonce: str, address: str = ADDRESS, domain: str = DOMAIN, expirat
 
 async def get_nonce(auth: db.Auth) -> str:
     resp = await auth.handle(db.AuthRequest(method="GET", path="/siwe/nonce"))
-    return json.loads(resp.body)["nonce"]
+    return str(json.loads(resp.body)["nonce"])
 
 
 def verify_req(msg: str, signature: str = "good") -> db.AuthRequest:

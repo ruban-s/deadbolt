@@ -40,7 +40,8 @@ async def approver(auth: db.Auth) -> dict[str, str]:
 async def start(auth: db.Auth) -> dict[str, str]:
     resp = await auth.handle(post("/device/code", {"client_id": "cli"}))
     assert resp.status == 200
-    return json.loads(resp.body)
+    codes: dict[str, str] = json.loads(resp.body)
+    return codes
 
 
 async def test_full_device_flow() -> None:

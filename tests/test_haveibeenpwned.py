@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from typing import TYPE_CHECKING
 
 import httpx
 import pytest
@@ -10,10 +11,13 @@ import deadbolt as db
 from _helpers import fast_hasher
 from deadbolt.plugins.haveibeenpwned import haveibeenpwned
 
+if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable
+
 pytestmark = pytest.mark.anyio
 
 
-def fake_hibp(breached: set[str], *, count: str = "42"):
+def fake_hibp(breached: set[str], *, count: str = "42") -> Callable[[str], Awaitable[str]]:
     """A stub HIBP range endpoint that reports ``breached`` passwords as pwned."""
 
     async def fetch(prefix: str) -> str:
@@ -27,7 +31,7 @@ def fake_hibp(breached: set[str], *, count: str = "42"):
     return fetch
 
 
-def build_auth(fetch) -> db.Auth:
+def build_auth(fetch: Callable[[str], Awaitable[str]]) -> db.Auth:
     return db.Auth(
         adapter=db.MemoryAdapter(),
         secret="x" * 32,

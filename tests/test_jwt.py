@@ -133,7 +133,7 @@ async def test_jwks_verifies_token_via_public_key() -> None:
     from jwt.algorithms import OKPAlgorithm  # noqa: PLC0415
 
     key = OKPAlgorithm.from_jwk(json.dumps(jwks["keys"][0]))
-    claims = pyjwt.decode(token, key, algorithms=["EdDSA"], issuer="deadbolt")
+    claims = pyjwt.decode(token, key, algorithms=["EdDSA"], issuer="deadbolt")  # type: ignore[arg-type]
     assert claims["email"] == "a@b.com"
 
 

@@ -35,7 +35,7 @@ async def sign_up(auth: db.Auth) -> dict[str, str]:
 async def generate(auth: db.Auth, cookies: dict[str, str]) -> str:
     resp = await auth.handle(post("/one-time-token/generate", {}, cookies))
     assert resp.status == 200
-    return json.loads(resp.body)["token"]
+    return str(json.loads(resp.body)["token"])
 
 
 async def test_generate_then_verify_yields_session() -> None:
