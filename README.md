@@ -3,6 +3,7 @@
 A framework-agnostic, batteries-included authentication library for Python. Own your auth, mount it on any framework — no hosted service, no lock-in.
 
 [![PyPI](https://img.shields.io/pypi/v/deadbolt.svg)](https://pypi.org/project/deadbolt/)
+[![Docs](https://img.shields.io/readthedocs/deadbolt?logo=readthedocs&logoColor=white)](https://deadbolt.readthedocs.io)
 [![Python](https://img.shields.io/pypi/pyversions/deadbolt.svg)](https://pypi.org/project/deadbolt/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](https://opensource.org/license/mit)
 ![Typed](https://img.shields.io/badge/typed-mypy--strict-blue.svg)
